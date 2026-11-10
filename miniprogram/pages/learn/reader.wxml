@@ -1,0 +1,46 @@
+<view class="page">
+  <view wx:if="{{!article}}" class="panel">未找到这篇科普内容。</view>
+  <view wx:else class="panel reader">
+    <view class="reader-meta">
+      <text class="reader-category">{{article.category}}</text>
+      <text>{{video ? '中文字幕 · 无旁白' : '图文导读 · 约 ' + article.minutes + ' 分钟'}}</text>
+    </view>
+    <view class="reader-title">{{video ? video.title : article.title}}</view>
+    <view class="reader-summary">{{article.summary}}</view>
+    <view class="reader-byline">
+      <text>{{article.sourceShort}}</text>
+      <text wx:if="{{article.sourcePublishedAt}}">原文发布于 {{article.sourcePublishedAt}}</text>
+    </view>
+
+    <view wx:if="{{video}}" class="player">
+      <video wx:if="{{!videoError}}" class="lesson-video" src="{{video.src}}" poster="{{video.poster}}" controls object-fit="contain" binderror="videoFailed" aria-label="{{video.title}}" />
+      <view wx:else class="player-error">
+        视频暂时无法播放。下方提供完整的短片字幕与图文。
+        <button class="text-button" bindtap="retryVideo">重试播放</button>
+      </view>
+      <view class="caption-block">
+        <view class="caption-title">短片字幕</view>
+        <view wx:for="{{video.captions}}" wx:key="index" class="caption-line">{{item.text}}</view>
+      </view>
+    </view>
+    <view wx:else class="reader-art">
+      <view class="reader-cover cover scene-{{article.coverScene}}"></view>
+      <view class="figure-note">水知己配图（AI 生成），非来源机构图片。</view>
+    </view>
+
+    <view class="takeaway">{{article.takeaway}}</view>
+    <view wx:for="{{article.sections}}" wx:key="title" class="reader-section">
+      <view class="heading">{{item.title}}</view>
+      <view class="section-body">{{item.body}}</view>
+    </view>
+    <view class="reader-sources">
+      <view class="source-label">资料来源</view>
+      <view class="source-title">{{article.originalTitle || article.title}}</view>
+      <view class="source-detail">{{article.source}}</view>
+      <view wx:if="{{article.sourcePublishedAt}}" class="source-detail">原文发布于 {{article.sourcePublishedAt}}</view>
+      <view wx:if="{{article.originalAuthor}}" class="source-detail">{{article.originalAuthor}}</view>
+      <button wx:for="{{sources}}" wx:key="url" class="text-button source-link" data-url="{{item.url}}" bindtap="copySource">{{item.title}}{{index ? ' · 复制链接' : ''}}</button>
+      <view class="source-note">水知己收录与核对于 {{article.checkedAt}}。以上为水知己整理的科普摘要，尚未经临床专家审校。个人饮水、用药与护理安排请遵循医疗团队指导。</view>
+    </view>
+  </view>
+</view>

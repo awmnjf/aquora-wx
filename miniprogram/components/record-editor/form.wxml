@@ -1,0 +1,93 @@
+<view wx:if="{{waiting}}" class="panel muted">正在打开记录…</view>
+<form wx:else class="record-form" bindsubmit="onSubmit">
+  <view wx:if="{{linkedTask}}" class="form-hint">保存后会标记这项护理任务为已完成。</view>
+  <view wx:if="{{fromAssistant}}" class="form-hint">已填入识别结果。请核对时间、种类和分量后保存。</view>
+
+  <view class="field">
+    <view class="option-row kind-options">
+      <button wx:for="{{kindOptions}}" wx:key="value"
+        class="option {{kind === item.value ? 'selected' : ''}}" data-kind="{{item.value}}"
+        disabled="{{submitting}}" bindtap="chooseKind">{{item.label}}</button>
+    </view>
+  </view>
+
+  <view class="field" wx:if="{{kind !== 'symptom'}}">
+      <text class="label">{{kind === 'drink' ? '饮用量' : kind === 'food' ? '估计含水量' : '排出量'}}
+      <text class="muted optional" wx:if="{{kind === 'voiding' || kind === 'leakage'}}">可留空</text>
+    </text>
+    <view class="amount-input"><input id="amount" class="input amount-field" name="amount" type="number" value="{{amount}}" maxlength="4"
+      placeholder="{{kind === 'drink' || kind === 'food' ? '例如 200' : '未测量时留空'}}"
+      bindinput="changeAmount" cursor-spacing="62" disabled="{{submitting}}" /><text class="amount-unit">毫升</text></view>
+    <view wx:if="{{presets.length}}" class="option-row presets">
+      <button wx:if="{{kind === 'voiding'}}" class="option {{amount === '' ? 'selected' : ''}}" data-amount="" bindtap="chooseAmount" disabled="{{submitting}}">未测量</button>
+      <button wx:for="{{presets}}" wx:key="*this" class="option {{amount == item ? 'selected' : ''}}" data-amount="{{item}}" bindtap="chooseAmount" disabled="{{submitting}}">{{item}} mL</button>
+    </view>
+  </view>
+
+  <view wx:if="{{kind === 'voiding'}}" class="health-options">
+    <label class="health-option"><text class="health-label">尿道感染</text><switch class="health-switch" checked="{{!!urinaryInfection}}" data-field="urinaryInfection" bindchange="toggleObservation" disabled="{{submitting}}" color="#247d84" /></label>
+    <label class="health-option"><text class="health-label">漏尿</text><switch class="health-switch" checked="{{!!urineLeakage}}" data-field="urineLeakage" bindchange="toggleObservation" disabled="{{submitting}}" color="#247d84" /></label>
+  </view>
+  <button wx:if="{{!editing && !fromPhoto && (kind === 'drink' || kind === 'food' || kind === 'voiding')}}" class="text-button record-photo" bindtap="openPhoto" disabled="{{submitting}}">{{kind === 'voiding' ? '拍照识别' : '拍照估算 · 前后两张'}} <text>›</text></button>
+  <button wx:if="{{!editing}}" class="text-button more-toggle" bindtap="toggleMore" aria-expanded="{{showMore}}">
+    <text class="more-summary">{{date}} {{time}}{{kind === 'drink' ? ' · ' + drinkOptions[drinkIndex].label : ''}}{{note ? ' · 有备注' : ''}}</text>
+    <text class="more-action">{{showMore ? '收起' : '更多信息'}} {{showMore ? '⌃' : '⌄'}}</text>
+  </button>
+  <view hidden="{{!editing && !showMore}}" class="more-fields">
+    <view class="field" wx:if="{{kind === 'drink' || kind === 'food'}}">
+      <text class="label">饮品或食物</text>
+      <picker range="{{drinkOptions}}" range-key="label" value="{{drinkIndex}}" bindchange="chooseDrink" disabled="{{submitting}}">
+        <view class="input picker-input">{{drinkOptions[drinkIndex].label}} <text>›</text></view>
+      </picker>
+    </view>
+
+    <view class="field" wx:if="{{kind === 'voiding'}}">
+      <text class="label">排空情况</text>
+      <picker range="{{emptyingOptions}}" range-key="label" value="{{emptyingIndex}}" bindchange="chooseEmptying" disabled="{{submitting}}">
+        <view class="input picker-input">{{emptyingOptions[emptyingIndex].label}} <text>›</text></view>
+      </picker>
+    </view>
+
+    <view class="field">
+      <text class="label">发生时间 <text class="muted optional">北京时间</text></text>
+      <view class="date-row">
+        <picker mode="date" value="{{date}}" end="{{latestDate}}" bindchange="chooseDate" disabled="{{submitting}}">
+          <view class="input picker-input">{{date}} <text>›</text></view>
+        </picker>
+        <picker mode="time" value="{{time}}" bindchange="chooseTime" disabled="{{submitting}}">
+          <view class="input picker-input">{{time}} <text>›</text></view>
+        </picker>
+      </view>
+    </view>
+
+    <view class="field">
+      <text class="label">备注 <text class="muted optional">可选</text></text>
+      <textarea class="input textarea" name="note" value="{{note}}" bindinput="changeNote" maxlength="1000"
+        placeholder="写下需要记住的情况" cursor-spacing="62" disabled="{{submitting}}" />
+    </view>
+  </view>
+
+  <view wx:if="{{editing}}" class="field">
+    <text class="label">修订或撤销原因</text>
+    <textarea class="input textarea" name="reason" value="{{reason}}" maxlength="300"
+      placeholder="填写原因后保存或撤销" bindinput="changeReason" cursor-spacing="62" disabled="{{submitting}}" />
+  </view>
+
+  <view class="record-actions">
+    <view wx:if="{{error}}" class="error-box">{{error}}</view>
+    <view class="record-buttons">
+      <button id="save-record" class="primary-button" form-type="submit" loading="{{submitting}}" disabled="{{submitting}}">{{editing ? '保存修订' : '确认保存'}}</button>
+      <button wx:if="{{editing}}" class="text-button danger-button" bindtap="revoke" disabled="{{submitting}}">撤销记录</button>
+    </view>
+  </view>
+</form>
+
+<view wx:if="{{editing}}" class="panel revision-panel">
+  <view class="heading">修订历史</view>
+  <view class="muted" wx:if="{{!history.length && !historyError}}">暂无修订。</view>
+  <view wx:if="{{historyError}}" class="error-box">{{historyError}} <button class="text-button" bindtap="loadHistory">重试</button></view>
+  <view class="revision" wx:for="{{history}}" wx:key="version">
+    <text>第 {{item.version}} 版 · {{item.time}}</text>
+    <view class="muted">{{item.reason}}</view>
+  </view>
+</view>

@@ -1,0 +1,7 @@
+<view class="muted section-copy">请按已有护理方案填写，时刻统一使用北京时间。</view>
+<view class="field"><text class="label">每日饮水目标（毫升，可选）</text><input class="input" type="number" data-field="waterGoal" value="{{form.waterGoal}}" bindinput="updateField" placeholder="100 至 5000"/></view>
+<view class="field"><text class="label">饮水提醒时刻</text><input class="input" data-field="drinkTimes" value="{{form.drinkTimes}}" bindinput="updateField" maxlength="144" placeholder="例如 09:00、11:30"/></view>
+<view class="field"><text class="label">排尿 / 导尿提醒时刻</text><input class="input" data-field="voidTimes" value="{{form.voidTimes}}" bindinput="updateField" maxlength="144" placeholder="例如 08:00、12:00"/></view>
+<view class="field"><text class="label">方案来源</text><input class="input" data-field="source" value="{{form.source}}" bindinput="updateField" maxlength="200" placeholder="例如：复诊后确认的护理安排"/></view>
+<view class="field"><text class="label">备注</text><textarea class="input editor-notes" data-field="note" value="{{form.note}}" bindinput="updateField" maxlength="1000" placeholder="可选"/></view>
+<checkbox-group class="field" bindchange="confirmPlan"><label class="check-row"><checkbox value="confirmed" color="#13695c" checked="{{form.confirmed}}"/>我确认以上内容来自自己的既有护理安排。</label></checkbox-group>

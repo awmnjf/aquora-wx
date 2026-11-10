@@ -1,0 +1,119 @@
+<app-header id="app-header" />
+<view class="page reports-page">
+  <view class="page-intro">
+    <view class="report-title">个人报告</view>
+  </view>
+
+  <view class="report-toolbar">
+    <view class="segments" aria-label="报告时段">
+      <button wx:for="{{periods}}" wx:key="*this" class="segment {{period === item ? 'active' : ''}}" data-period="{{item}}" bindtap="choosePeriod">近{{item}}天</button>
+    </view>
+    <picker mode="date" value="{{to}}" end="{{today}}" bindchange="chooseEnd" aria-label="报告截止日期">
+      <view class="end-picker">截至 {{to}} ▾</view>
+    </picker>
+  </view>
+
+  <view wx:if="{{reportBusy}}" class="panel empty-state">读取个人报告中…</view>
+  <view wx:elif="{{reportError}}" class="panel">
+    <view class="error-box">{{reportError}}</view>
+    <button class="text-button" bindtap="retryReport">重新加载</button>
+  </view>
+  <block wx:elif="{{report}}">
+    <view class="panel report-panel">
+      <view class="row-between report-range">
+        <text>{{rangeDates}}</text>
+        <button class="text-button" aria-label="导出个人报告" loading="{{exporting}}" disabled="{{exporting}}" bindtap="exportReport">导出</button>
+      </view>
+      <view class="metric-grid">
+        <view wx:for="{{metrics}}" wx:key="label" class="metric">
+          <view class="metric-label"><image src="{{'/assets/ui/' + item.icon + '.png'}}" mode="aspectFit" aria-hidden="true"/><text>{{item.label}}</text></view>
+          <view class="metric-value">{{item.value}} <text class="metric-unit">{{item.unit}}</text></view>
+          <view class="metric-note">{{item.note}}</view>
+        </view>
+      </view>
+
+      <view class="report-chart">
+      <view class="row-between trend-head">
+        <view class="heading">每日变化</view>
+        <view class="legend"><text class="dot intake"></text>摄入 <text class="dot output"></text>排出 <text class="chart-unit">ml</text></view>
+      </view>
+      <view class="plot" aria-label="每日摄入与排出量，单位毫升">
+        <view class="axis"><text wx:for="{{axis}}" wx:key="*this">{{item}}</text></view>
+        <scroll-view class="chart-scroll" scroll-x scroll-into-view="{{'day-' + selected}}">
+          <view class="plot-days">
+            <view wx:for="{{chartDays}}" wx:key="date" id="{{'day-' + item.date}}" class="plot-day {{selected === item.date ? 'chosen' : ''}}" data-date="{{item.date}}" bindtap="chooseChartDay" aria-label="{{item.date + '，' + item.records + ' 笔记录'}}">
+              <view class="bar-pair">
+                <view class="bar intake" style="height: {{item.intakeHeight}}%;"></view>
+                <view class="bar output" style="height: {{item.outputHeight}}%;"></view>
+                <text wx:if="{{!item.records}}" class="no-bars">—</text>
+              </view>
+              <text class="plot-label">{{item.label}}</text>
+            </view>
+          </view>
+        </scroll-view>
+      </view>
+      <view class="row-between plot-caption"><text>{{rangeLabel}}</text><text>点击日期查看记录</text></view>
+      <view wx:if="{{selectedDay}}" class="day-summary">
+        <text class="day-date">{{selectedDay.date}}</text>
+        <text>摄入 {{selectedDay.intake}}</text><text>排出 {{selectedDay.output}}</text><text>{{selectedDay.records}} 笔</text>
+      </view>
+      </view>
+    </view>
+    <view class="report-note">日均按所选 {{report.days.length}} 个自然日计算。缺失记录可能使日均偏低，“—”表示暂无对应记录。<text wx:if="{{report.summary.infections != null}}">尿道感染按开关开启的记录计数，漏尿包含标记记录及独立漏尿记录。</text>北京时间。</view>
+
+    <view class="report-panel history">
+      <view class="row-between history-head">
+        <view class="heading">历史记录</view>
+        <view class="day-controls">
+          <button class="text-button day-step" data-step="-1" disabled="{{selected <= from}}" bindtap="stepDay" aria-label="前一天">‹</button>
+          <picker mode="date" value="{{selected}}" start="{{from}}" end="{{to}}" bindchange="chooseHistoryDay" aria-label="历史记录日期">
+            <view class="history-date">{{selected}}</view>
+          </picker>
+          <button class="text-button day-step" data-step="1" disabled="{{selected >= to}}" bindtap="stepDay" aria-label="后一天">›</button>
+        </view>
+      </view>
+      <view class="segments kind-tabs" aria-label="记录类型">
+        <button wx:for="{{kinds}}" wx:key="id" class="segment {{kind === item.id ? 'active' : ''}}" data-kind="{{item.id}}" bindtap="chooseKind">{{item.label}}</button>
+      </view>
+      <button wx:for="{{events}}" wx:key="id" class="event-row" data-id="{{item.id}}" bindtap="openEvent">
+        <text class="event-time">{{item.time}}</text>
+        <view class="event-icon {{item.kind}}"><image src="{{'/assets/ui/' + item.kind + '.png'}}" mode="aspectFit" aria-hidden="true"/></view>
+        <view class="event-copy">
+          <view class="event-label">{{item.label}}</view>
+          <view wx:if="{{item.note}}" class="event-note">{{item.note}}</view>
+          <view wx:if="{{item.observations}}" class="event-note">{{item.observations}}</view>
+          <view wx:if="{{item.incomplete}}" class="event-note">记录为未充分排空</view>
+        </view>
+        <text class="event-amount">{{item.amount}}</text>
+      </button>
+      <view wx:if="{{historyBusy}}" class="empty-state">读取记录中…</view>
+      <view wx:elif="{{historyError}}">
+        <view class="error-box history-error">{{historyError}}</view>
+        <button class="text-button more" bindtap="retryHistory">重试</button>
+      </view>
+      <button wx:elif="{{hasMore}}" class="text-button more" bindtap="loadMore">查看更多记录</button>
+      <view wx:elif="{{!events.length}}" class="empty-state">这一天暂无相关记录</view>
+    </view>
+
+    <view class="report-panel interpretation">
+      <button class="primary-button interpret-button" loading="{{interpretBusy}}" disabled="{{interpretBusy}}" bindtap="interpret">
+        <text class="interpret-icon" aria-hidden="true">✦</text><view>
+          {{interpretBusy ? '正在解读你的记录…' : interpretation ? '重新解读报告' : 'AI 解读报告'}}
+          <view class="interpret-range">{{rangeLabel}} · 所选时段全部记录</view>
+        </view><text class="interpret-arrow" aria-hidden="true">↗</text>
+      </button>
+      <view wx:if="{{interpretError}}" class="error-box interpret-error">{{interpretError}}</view>
+      <view wx:if="{{interpretation}}" class="interpret-result">
+        <view class="row-between"><view class="heading">{{interpretation.mode === 'empty' ? '记录待补充' : '这段时间的你'}}</view><text class="badge">{{interpretation.mode === 'ai' ? 'AI 生成' : '数据提示'}}</text></view>
+        <view class="interpret-summary">{{interpretation.summary}}</view>
+        <view wx:for="{{interpretation.observations}}" wx:key="index" class="observation">· {{item.text}}</view>
+        <view wx:if="{{interpretation.suggestions.length}}" class="suggestion">
+          <view class="event-label">下一步</view>
+          <view wx:for="{{interpretation.suggestions}}" wx:key="index">{{item.text}}</view>
+        </view>
+        <view class="report-note">仅解读已记录数据，不作为诊断或治疗依据。</view>
+      </view>
+    </view>
+  </block>
+</view>
+<record-editor id="record-editor" tab-page="{{true}}" bind:saved="reloadAfterEdit" />

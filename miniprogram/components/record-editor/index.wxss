@@ -1,0 +1,41 @@
+@import "./form.wxss";
+
+.record-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  box-sizing: border-box;
+  background: #153c4a61;
+}
+.record-dialog {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 480px;
+  max-height: 92vh;
+  overflow: hidden;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 22px 56px #103b4b30;
+}
+.record-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex: none;
+  padding: 5px 12px 5px 16px;
+  color: #183741;
+  font-size: 20px;
+  font-weight: 650;
+}
+.record-close { width: 44px; --button-width: 44px; font-size: 24px; color: #58717a; }
+.record-scroll { max-height: calc(92vh - 54px); min-height: 0; }
+.record-body { padding: 0 16px 0; }
+@media (max-width: 360px) {
+  .record-backdrop { padding: 9px; }
+  .record-body { padding-right: 12px; padding-left: 12px; }
+}

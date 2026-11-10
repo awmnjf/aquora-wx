@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "外出地图",
+  "usingComponents": {
+    "record-editor": "/components/record-editor/index"
+  }
+}

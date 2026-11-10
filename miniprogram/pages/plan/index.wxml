@@ -1,0 +1,116 @@
+<app-header id="app-header" />
+<view class="page care-page">
+  <view class="page-intro">
+    <view class="heading">护理计划</view>
+    <view class="muted">记下已有护理安排，按北京时间查看每日提醒。</view>
+    <navigator class="intro-link" url="/pages/notifications/index">查看站内提醒 ›</navigator>
+  </view>
+
+  <view wx:if="{{error}}" class="error-box">{{error}}<button class="text-button" bindtap="refresh">重试</button></view>
+  <view wx:if="{{loading && !plan}}" class="panel muted">正在读取护理计划…</view>
+
+  <block wx:if="{{plan}}">
+    <view wx:if="{{plan.version}}" class="panel plan-summary">
+      <view class="chip">当前方案 v{{plan.version}}</view>
+      <view class="heading">{{plan.data.source}}</view>
+      <view class="muted">{{plan.data.note || '按您确认的时刻生成护理任务'}}</view>
+      <view class="summary-details">
+        <view>每日饮水目标 · {{plan.data.waterGoal ? plan.data.waterGoal + ' mL' : '未设置'}}</view>
+        <view>饮水 · {{plan.drinkText || '未设置'}}</view>
+        <view>排尿 / 导尿 · {{plan.voidText || '未设置'}}</view>
+      </view>
+      <button class="primary-button" bindtap="editPlan" disabled="{{loading}}">调整安排</button>
+    </view>
+    <view wx:else class="panel">
+      <view class="heading">先把已有安排记下来</view>
+      <view class="muted section-copy">填写方案来源和护理时刻，系统据此生成提醒。</view>
+      <button class="primary-button" bindtap="editPlan" disabled="{{loading}}">设置护理安排</button>
+    </view>
+
+    <view class="panel">
+      <view class="section-title"><view class="heading">今日护理时间线</view><text class="muted">北京时间</text></view>
+      <view wx:if="{{!tasks.length}}" class="muted section-copy">今天暂无护理安排。</view>
+      <view wx:for="{{tasks}}" wx:key="id" class="care-row">
+        <view class="row-main">
+          <text class="row-title">{{item.time}} · {{item.label}}</text>
+          <text class="muted row-detail">{{item.detail}} · v{{item.plan_version}}</text>
+        </view>
+        <view wx:if="{{item.status === 'pending'}}" class="row-actions">
+          <button class="text-button" data-id="{{item.id}}" bindtap="editSkip">未执行</button>
+          <button class="small-button" data-id="{{item.id}}" data-kind="{{item.kind}}" bindtap="recordTask">记录</button>
+        </view>
+        <view wx:elif="{{item.status === 'done'}}" class="chip">已记录</view>
+        <view wx:else class="chip chip-warm">未执行</view>
+      </view>
+    </view>
+
+    <view class="panel">
+      <view class="heading">外出与行程</view>
+      <view class="muted section-copy">查看行程与护理时刻是否重叠。</view>
+      <view wx:if="{{!outings.length}}" class="muted section-copy">尚未安排外出。</view>
+      <view wx:for="{{outings}}" wx:key="id" class="care-row">
+        <view class="row-main"><text class="row-title">{{item.title}}</text><text class="muted row-detail">{{item.time}}</text></view>
+        <button class="text-button" data-id="{{item.id}}" bindtap="confirmDeleteOuting" disabled="{{!!deletingId}}">删除</button>
+      </view>
+      <button class="secondary-button" bindtap="editOuting">添加外出行程</button>
+    </view>
+
+    <view wx:if="{{history.length}}" class="panel">
+      <view class="heading">方案版本</view>
+      <view wx:for="{{history}}" wx:key="version" class="care-row">
+        <view class="row-main">
+          <text class="row-title">v{{item.version}} · {{item.active ? '当前生效' : '历史方案'}}</text>
+          <text class="muted row-detail">{{item.source}}</text>
+        </view>
+        <text class="muted row-detail">{{item.date}}</text>
+      </view>
+    </view>
+  </block>
+
+  <view wx:if="{{editor}}" class="editor-cover">
+    <view class="editor-sheet {{editor === 'skip' || outingResult ? 'editor-short' : ''}}">
+      <view class="editor-header">
+        <view class="heading">{{editor === 'plan' ? '转录个人护理安排' : editor === 'skip' ? '记录未执行情况' : '外出行程'}}</view>
+        <button class="text-button" bindtap="closeEditor" disabled="{{busy}}">关闭</button>
+      </view>
+      <scroll-view class="editor-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+        <view class="editor-body">
+
+        <block wx:if="{{editor === 'plan'}}">
+          <include src="../../components/plan-editor/fields.wxml"/>
+        </block>
+
+        <block wx:elif="{{editor === 'skip'}}">
+          <view class="field"><text class="label">未执行原因</text><textarea class="input editor-notes" data-field="reason" value="{{form.reason}}" bindinput="updateField" maxlength="300" placeholder="记录实际情况，便于后续回顾"/></view>
+        </block>
+
+        <block wx:elif="{{outingResult}}">
+          <view class="notice-copy">{{outingResult.message}}</view>
+          <view wx:for="{{outingResult.conflicts}}" wx:key="id" class="care-row">{{item.time}} · {{item.label}}</view>
+          <button class="primary-button editor-button" bindtap="closeEditor" disabled="{{busy}}">知道了</button>
+        </block>
+
+        <block wx:else>
+          <view class="field"><text class="label">外出事项</text><input class="input" data-field="title" value="{{form.title}}" bindinput="updateField" maxlength="100" placeholder="例如：外出办事"/></view>
+          <view class="field"><text class="label">开始时间（北京时间）</text><view class="date-pickers">
+            <picker mode="date" data-field="startDate" value="{{form.startDate}}" bindchange="updateField"><view class="input">{{form.startDate}}</view></picker>
+            <picker mode="time" data-field="startTime" value="{{form.startTime}}" bindchange="updateField"><view class="input">{{form.startTime}}</view></picker>
+          </view></view>
+          <view class="field"><text class="label">结束时间（北京时间）</text><view class="date-pickers">
+            <picker mode="date" data-field="endDate" value="{{form.endDate}}" bindchange="updateField"><view class="input">{{form.endDate}}</view></picker>
+            <picker mode="time" data-field="endTime" value="{{form.endTime}}" bindchange="updateField"><view class="input">{{form.endTime}}</view></picker>
+          </view></view>
+          <view class="muted section-copy">保存后会检查已生成的护理任务。</view>
+        </block>
+
+        <view wx:if="{{formError}}" class="error-box">{{formError}}</view>
+        <button wx:if="{{conflict}}" class="primary-button" bindtap="reloadPlan">关闭并刷新方案</button>
+        <button wx:elif="{{!outingResult}}" class="primary-button" bindtap="submitEditor" loading="{{busy}}" disabled="{{busy}}">
+          {{editor === 'plan' ? '保存并启用新版本' : editor === 'skip' ? '保存原因' : '保存并检查'}}
+        </button>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+</view>
+<record-editor id="record-editor" bind:saved="refresh" />

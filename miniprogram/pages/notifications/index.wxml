@@ -1,0 +1,18 @@
+<view class="page">
+  <view class="notice-header">
+    <view><view class="heading">站内提醒</view><view class="muted">{{unread ? unread + ' 条未读' : '没有未读提醒'}}</view></view>
+    <button class="text-button" bindtap="openPlan">护理计划 ›</button>
+  </view>
+  <view class="muted notice-help">这里显示护理提醒，请继续使用已有的提醒方式。</view>
+  <view wx:if="{{error}}" class="error-box">{{error}}<button class="text-button" bindtap="refresh">重试</button></view>
+  <view wx:if="{{loading && !items.length}}" class="panel muted">正在读取提醒…</view>
+  <view wx:elif="{{!error && !items.length}}" class="panel muted">暂无站内提醒。</view>
+  <view wx:for="{{items}}" wx:key="id" class="panel notice-card {{item.seen ? '' : 'unread'}}">
+    <view class="notice-title"><text>{{item.title}}</text><text class="notice-state">{{item.seen ? '已读' : '未读'}}</text></view>
+    <view class="notice-body">{{item.body}}</view>
+    <view class="notice-footer">
+      <text class="muted">{{item.time}}</text>
+      <button wx:if="{{!item.seen}}" class="text-button" data-id="{{item.id}}" bindtap="markRead" loading="{{readingId === item.id}}" disabled="{{!!readingId}}">标为已读</button>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,29 @@
+<view class="topbar">
+  <navigator class="brand" url="/pages/today/index" open-type="switchTab" aria-label="水知己首页">
+    <image class="brand-icon" src="/assets/ui/brand.png" mode="aspectFit" aria-hidden="true"/><text>水知己</text>
+  </navigator>
+  <view class="top-actions">
+    <button class="top-voice {{voiceEnabled ? 'voice-enabled' : ''}}" bindtap="toggleVoice" aria-pressed="{{voiceEnabled}}">
+      <image class="top-icon" src="/assets/ui/speaker.png" mode="aspectFit" aria-hidden="true"/><text>语音播报</text><view class="voice-dot"></view>
+    </button>
+    <button class="bell-button" bindtap="toggleBell" aria-label="查看提醒" aria-expanded="{{bellOpen}}">
+      <image class="top-icon" src="/assets/ui/bell.png" mode="aspectFit" aria-hidden="true"/><view wx:if="{{unread}}" class="unread-dot"></view>
+    </button>
+    <navigator wx:if="{{avatar}}" class="top-avatar" url="/pages/profile/index" open-type="switchTab" aria-label="个人档案">{{avatar}}</navigator>
+  </view>
+</view>
+<view wx:if="{{message && !bellOpen}}" class="message-island" role="status">
+  <scroll-view scroll-y class="message-scroll"><view class="message-text">{{message}}</view></scroll-view>
+  <button class="text-button dismiss-message" bindtap="clearMessage" aria-label="关闭消息">×</button>
+</view>
+<view wx:if="{{bellOpen}}" class="bell-popover">
+  <view class="bell-title"><text>站内提醒</text><button class="text-button close-bell" bindtap="toggleBell" aria-label="关闭提醒">×</button></view>
+  <view wx:if="{{error}}" class="bell-status">{{error}}</view>
+  <view wx:elif="{{!items.length}}" class="bell-status">{{loading ? '正在读取提醒…' : '暂时没有新的提醒'}}</view>
+  <scroll-view wx:if="{{items.length}}" scroll-y class="bell-list">
+    <button wx:for="{{items}}" wx:key="id" class="bell-item {{item.seen ? '' : 'unread'}}" data-id="{{item.id}}" bindtap="openReminder">
+      <text class="bell-item-title">{{item.title}}</text><text>{{item.body}}</text><text class="bell-item-time">{{item.time}} {{item.seen ? '已读' : '未读'}}</text>
+    </button>
+  </scroll-view>
+  <navigator class="text-button bell-all" url="/pages/notifications/index">查看全部提醒 ›</navigator>
+</view>

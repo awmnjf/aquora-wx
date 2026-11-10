@@ -1,0 +1,9 @@
+.notice-header, .notice-title, .notice-footer { display: flex; align-items: center; justify-content: space-between; gap: 14rpx; }
+.notice-header .heading { font-size: 42rpx; }
+.notice-help { margin: 18rpx 0 24rpx; }
+.notice-card { margin-bottom: 18rpx; }
+.notice-card.unread { background: #e8f4ef; border-color: #bbdccf; }
+.notice-title { font-size: 31rpx; font-weight: 650; }
+.notice-state { flex-shrink: 0; padding: 4rpx 12rpx; border-radius: 20rpx; color: #236255; background: #d8eee4; font-size: 22rpx; }
+.notice-body { margin: 12rpx 0; overflow-wrap: anywhere; }
+.notice-footer { font-size: 24rpx; }

@@ -1,0 +1,107 @@
+<template name="number-field">
+  <view class="field">
+    <text class="label">{{field.label}}</text>
+    <input class="input" type="{{field.type}}" data-field="{{field.key}}" value="{{value}}" bindinput="updateField" placeholder="{{field.placeholder || '可选'}}"/>
+  </view>
+</template>
+
+<app-header id="app-header" />
+<view class="page profile-page">
+  <view class="heading page-title">我的</view>
+  <view wx:if="{{error}}" class="error-box">{{error}}<button class="text-button" bindtap="refresh">重试</button></view>
+  <view wx:if="{{loading && !identity}}" class="panel muted">正在读取个人资料…</view>
+
+  <view wx:if="{{identity}}" class="panel identity">
+    <view class="avatar">{{identity.initial}}</view>
+    <view class="identity-main"><view class="heading">{{identity.name}}</view><view class="muted">{{identity.method}}</view></view>
+    <button class="text-button" data-editor="profile" bindtap="openEditor" disabled="{{loading}}">编辑资料</button>
+  </view>
+
+  <navigator url="/pages/reports/index" open-type="switchTab" class="panel shortcut"><text>个人报告</text><text>›</text></navigator>
+
+  <view class="panel group">
+    <view class="heading group-title">照护设置</view>
+    <navigator class="setting" url="/pages/plan/index">
+      <text class="setting-label">护理计划</text><text class="setting-detail">任务与外出安排</text><text>›</text>
+    </navigator>
+    <button wx:if="{{identity}}" class="setting" data-editor="estimate" bindtap="openEditor" disabled="{{loading}}">
+      <text class="setting-label">膀胱估算</text><text class="setting-detail">{{identity.modelEnabled ? '已开启' : '已关闭'}}</text><text>›</text>
+    </button>
+    <button wx:if="{{identity.modelEnabled}}" class="setting" data-editor="calibration" bindtap="openEditor" disabled="{{loading}}">
+      <text class="setting-label">重设校准</text><text class="setting-detail">{{identity.calibratedAt ? '上次 ' + identity.calibratedAt : '从注册时起算'}}</text><text>›</text>
+    </button>
+    <button class="setting" data-editor="devices" bindtap="openEditor"><text class="setting-label">设备接入</text><text class="setting-detail">查看设备</text><text>›</text></button>
+    <navigator wx:if="{{user && !user.demo}}" class="setting" url="/pages/research/index">
+      <text class="setting-label">算法研究</text><text class="setting-detail">自愿参加</text><text>›</text>
+    </navigator>
+  </view>
+
+  <view class="panel group">
+    <view class="heading group-title">账号与偏好</view>
+    <navigator class="setting" url="/pages/notifications/index"><text class="setting-label">站内提醒</text><text class="setting-detail">查看提醒</text><text>›</text></navigator>
+    <button wx:if="{{user}}" class="setting" data-editor="account" bindtap="openEditor">
+      <text class="setting-label">账号管理</text><text class="setting-detail">{{user.demo ? '体验账号' : user.username}}</text><text>›</text>
+    </button>
+    <navigator wx:if="{{user.role === 'admin'}}" class="setting" url="/pages/admin/index">
+      <text class="setting-label">运营工作台</text><text class="setting-detail">管理员</text><text>›</text>
+    </navigator>
+  </view>
+
+  <view wx:if="{{editor}}" class="editor-cover">
+    <view class="editor-sheet {{editor === 'profile' || editor === 'estimate' ? '' : 'editor-short'}}">
+      <view class="editor-header">
+        <view class="heading">{{editor === 'profile' ? '个人资料' : editor === 'estimate' ? '膀胱估算' : editor === 'calibration' ? '重设校准' : editor === 'devices' ? '设备接入' : editor === 'password' ? '修改登录密码' : '账号管理'}}</view>
+        <button class="text-button" bindtap="closeEditor" disabled="{{busy}}">关闭</button>
+      </view>
+      <scroll-view class="editor-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+        <view class="editor-body">
+        <block wx:if="{{editor === 'profile'}}">
+          <view class="field"><text class="label">昵称</text><input class="input" maxlength="40" data-field="displayName" value="{{form.displayName}}" bindinput="updateField"/></view>
+          <view class="field"><text class="label">排尿管理方式</text><picker mode="selector" range="{{methods}}" range-key="label" value="{{methodIndex}}" bindchange="updateMethod"><view class="input">{{methods[methodIndex].label}} ›</view></picker></view>
+          <block wx:for="{{personalFields}}" wx:key="key"><template is="number-field" data="{{field: item, value: form[item.key]}}"/></block>
+        </block>
+        <block wx:elif="{{editor === 'estimate'}}">
+          <view class="switch-row field"><text>在「今日」显示膀胱状态</text><switch color="#13695c" checked="{{form.modelEnabled}}" bindchange="toggleModel"/></view>
+          <block wx:if="{{form.modelEnabled}}">
+            <block wx:for="{{estimateFields}}" wx:key="key"><template is="number-field" data="{{field: item, value: form[item.key]}}"/></block>
+            <view class="muted form-hint">充盈参考量须小于总膀胱储量，留空时按 300 毫升计算。</view>
+            <button class="text-button advanced-toggle" bindtap="toggleAdvanced">{{advanced ? '收起高级参数' : '展开高级参数'}}</button>
+            <block wx:if="{{advanced}}">
+              <block wx:for="{{advancedFields}}" wx:key="key"><template is="number-field" data="{{field: item, value: form[item.key]}}"/></block>
+            </block>
+            <view class="muted form-hint">估算用于观察变化，排尿和导尿请按个人护理计划安排。</view>
+          </block>
+        </block>
+        <block wx:elif="{{editor === 'calibration'}}">
+          <view class="muted form-hint">从现在重新估算，保留已有记录。有实测值时填写，留空则估算此后新增的尿量。</view>
+          <view class="field"><text class="label">当前实测尿量（毫升，可选）</text><input class="input" type="digit" data-field="volumeMl" value="{{form.volumeMl}}" bindinput="updateField" placeholder="留空或填写实测值"/></view>
+        </block>
+        <block wx:elif="{{editor === 'password'}}">
+          <view class="field"><text class="label">当前密码</text><input class="input" password maxlength="72" data-field="currentPassword" value="{{form.currentPassword}}" bindinput="updateField"/></view>
+          <view class="field"><text class="label">新密码（10 至 72 位）</text><input class="input" password maxlength="72" data-field="newPassword" value="{{form.newPassword}}" bindinput="updateField"/></view>
+        </block>
+        <block wx:elif="{{editor === 'account'}}">
+          <view class="setting account"><text>当前账号</text><text class="setting-detail">{{user.demo ? '独立体验账号' : user.username}}</text></view>
+          <button wx:if="{{!user.demo}}" class="secondary-button" data-editor="password" bindtap="openEditor" disabled="{{busy}}">修改密码</button>
+          <view wx:if="{{formError}}" class="error-box">{{formError}}</view>
+          <button class="secondary-button" bindtap="logout" loading="{{busy}}" disabled="{{busy}}">退出登录</button>
+        </block>
+        <block wx:elif="{{editor === 'devices'}}">
+          <view wx:if="{{loadingDevices}}" class="muted">正在读取设备…</view>
+          <view wx:if="{{devicesError}}" class="error-box">{{devicesError}}<button class="text-button" bindtap="loadDevices">重试</button></view>
+          <block wx:if="{{devices}}">
+            <view class="muted form-hint">{{devices.message}}</view>
+            <view wx:if="{{!devices.items.length}}" class="muted">暂无已接入设备。</view>
+            <view wx:for="{{devices.items}}" wx:key="id" class="setting"><text class="setting-label">{{item.name || item.model || item.provider || '已接入设备'}}</text><text class="setting-detail">{{item.status}}</text></view>
+          </block>
+        </block>
+        <block wx:if="{{editor !== 'account' && editor !== 'devices'}}">
+          <view wx:if="{{formError}}" class="error-box">{{formError}}</view>
+          <button wx:if="{{conflict}}" class="primary-button" bindtap="reloadProfile">关闭并刷新档案</button>
+          <button wx:else class="primary-button" bindtap="submitEditor" loading="{{busy}}" disabled="{{busy}}">{{editor === 'calibration' ? '从现在开始' : editor === 'password' ? '保存新密码' : '保存'}}</button>
+        </block>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,59 @@
+<view class="page photo-page">
+  <view class="photo-hero">
+    <view class="eyebrow">照片辅助记录</view>
+    <view class="heading">{{kind === 'voiding' ? '识别排出量' : '估算摄入水分'}}</view>
+    <view class="muted">{{kind === 'voiding' ? '拍摄带刻度的容器，尽量让液面和刻度清晰可见。' : '拍摄同一杯或同一餐的前后照片，尽量保持角度一致。'}}</view>
+  </view>
+
+  <view class="panel photo-panel">
+    <view wx:if="{{!fixedKind && kind !== 'voiding'}}" class="kind-row" aria-label="估算类型">
+      <button class="kind {{kind === 'drink' ? 'selected' : ''}}" data-kind="drink" bindtap="chooseKind" disabled="{{!!stage}}" aria-pressed="{{kind === 'drink'}}">饮水</button>
+      <button class="kind {{kind === 'food' ? 'selected' : ''}}" data-kind="food" bindtap="chooseKind" disabled="{{!!stage}}" aria-pressed="{{kind === 'food'}}">食物含水</button>
+    </view>
+    <view wx:if="{{checking}}" class="muted capability">正在检查照片估算服务…</view>
+    <view wx:elif="{{!available}}" class="muted capability">
+      <text>照片估算暂不可用，可先手动填写。</text>
+      <button class="text-button" bindtap="loadCapability">重试</button>
+    </view>
+    <block wx:else>
+      <view class="photo-pair {{kind === 'voiding' ? 'photo-single' : ''}}">
+        <view class="photo-slot">
+          <view class="slot-title"><text>{{kind === 'voiding' ? '待识别的照片' : kind === 'food' ? '进食前' : '饮用前'}}</text><button wx:if="{{before}}" class="text-button remove" data-slot="before" bindtap="clearPhoto" disabled="{{!!stage}}" aria-label="移除照片">移除</button></view>
+          <image wx:if="{{before}}" class="preview" src="{{before}}" mode="aspectFill" aria-label="使用前照片" />
+          <view wx:else class="preview placeholder" aria-hidden="true">＋</view>
+          <view class="photo-actions">
+            <button class="text-button" data-slot="before" data-source="camera" bindtap="choosePhoto" disabled="{{!!stage}}" aria-label="拍摄使用前照片">拍照</button>
+            <button class="text-button" data-slot="before" data-source="album" bindtap="choosePhoto" disabled="{{!!stage}}" aria-label="从相册选择使用前照片">相册</button>
+          </view>
+        </view>
+        <view wx:if="{{kind !== 'voiding'}}" class="photo-slot">
+          <view class="slot-title"><text>{{kind === 'food' ? '进食后' : '饮用后'}}</text><button wx:if="{{after}}" class="text-button remove" data-slot="after" bindtap="clearPhoto" disabled="{{!!stage}}" aria-label="移除使用后照片">移除</button></view>
+          <image wx:if="{{after}}" class="preview" src="{{after}}" mode="aspectFill" aria-label="使用后照片" />
+          <view wx:else class="preview placeholder" aria-hidden="true">＋</view>
+          <view class="photo-actions">
+            <button class="text-button" data-slot="after" data-source="camera" bindtap="choosePhoto" disabled="{{!!stage}}" aria-label="拍摄使用后照片">拍照</button>
+            <button class="text-button" data-slot="after" data-source="album" bindtap="choosePhoto" disabled="{{!!stage}}" aria-label="从相册选择使用后照片">相册</button>
+          </view>
+        </view>
+      </view>
+      <view wx:if="{{kind !== 'voiding'}}" class="field context-field">
+        <label class="label" for="context">补充容量或份量（可选）</label>
+        <textarea id="context" class="input context" maxlength="500" value="{{context}}" disabled="{{!!stage}}" bindinput="setContext" placeholder="{{kind === 'food' ? '如：餐前西瓜约 300 克，没有再添' : '如：杯子容量 350 毫升，中途没有续杯'}}" />
+      </view>
+      <view class="muted privacy">点击估算后，照片将发送至 AI 分析。</view>
+      <button class="primary-button photo-submit" bindtap="estimate" loading="{{stage === 'estimate'}}" disabled="{{!!stage || !before || (kind !== 'voiding' && !after)}}">{{stage === 'pick' ? '正在处理照片…' : stage === 'estimate' ? '正在分析照片…' : kind === 'voiding' ? '识别照片' : estimate ? '重新估算' : '估算摄入水分'}}</button>
+    </block>
+    <view wx:if="{{error}}" class="error-box photo-error">{{error}}</view>
+  </view>
+
+  <view wx:if="{{estimate}}" class="panel estimate-panel">
+    <view class="eyebrow">待确认记录</view>
+    <view class="estimate-amount">{{amount}} <text>mL</text></view>
+    <view wx:if="{{estimate.description}}">{{estimate.description}}</view>
+    <view wx:if="{{estimate.rangeMl}}" class="muted">参考范围 {{estimate.rangeMl.min}}–{{estimate.rangeMl.max}} 毫升</view>
+    <view wx:if="{{estimate.reason}}" class="muted">{{estimate.reason}}</view>
+    <view class="muted privacy">请核对估算，可在记录页修改数量。</view>
+    <button class="primary-button photo-submit" bindtap="openDraft" disabled="{{!!stage}}">核对并记录</button>
+  </view>
+  <button class="text-button manual" bindtap="manualRecord" disabled="{{!!stage}}">手动填写记录</button>
+</view>

@@ -1,0 +1,2 @@
+@import "../../components/record-editor/form.wxss";
+.record-page-card { padding-bottom: 0; }

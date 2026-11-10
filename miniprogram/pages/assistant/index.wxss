@@ -1,0 +1,147 @@
+.assistant-page {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 54px);
+  height: calc(100dvh - 54px);
+  max-width: 640px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  background: #f2f8f6;
+}
+
+.assistant-header {
+  display: flex;
+  align-items: center;
+  flex: none;
+  gap: 8px;
+  padding: 10px 12px;
+  background: #fff;
+}
+
+.avatar, .welcome-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 78rpx;
+  height: 78rpx;
+  border-radius: 26rpx;
+  background: #dcefeb;
+  color: #13695c;
+  font-size: 42rpx;
+}
+
+.identity { flex: 1; min-width: 0; }
+.subtitle { font-size: 12px; }
+.header-action {
+  flex: none;
+  min-width: 44px;
+  padding: 6px 7px;
+  white-space: nowrap;
+}
+.text-button[disabled] { background: transparent; color: #6d837e; }
+
+.scenario-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  flex: none;
+  gap: 5px;
+  padding: 0 12px 9px;
+  border-bottom: 1rpx solid #dae7e2;
+  background: #fff;
+}
+
+.scenario {
+  --button-width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  margin: 0;
+  padding: 6px 2px;
+  border: 1rpx solid #e4ece9;
+  border-radius: 16rpx;
+  background: #f6faf8;
+  color: #45645b;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.scenario::after, .suggestion::after { border: 0; }
+.scenario.selected { border-color: #9cc8bc; background: #e2f0eb; color: #115f53; font-weight: 700; }
+.thread { flex: 1; height: 0; min-height: 0; }
+.thread-content { padding: 12px 12px 16px; }
+.welcome { margin: 8px 0; }
+.welcome-title { margin-top: 8px; font-size: 20px; font-weight: 700; }
+.welcome-subtitle { margin: 5px 0 12px; }
+
+.suggestion {
+  --button-width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 14rpx;
+  padding: 8px 10px;
+  border: 1rpx solid #dae7e2;
+  border-radius: 16rpx;
+  background: #fff;
+  color: #17483e;
+  font-size: 14px;
+  text-align: left;
+  line-height: 1.5;
+}
+
+.message {
+  width: fit-content;
+  max-width: 92%;
+  margin: 0 auto 18rpx 0;
+  padding: 16rpx 20rpx;
+  border: 1rpx solid #dae7e2;
+  border-radius: 8rpx 23rpx 23rpx;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.message.user { margin-right: 0; margin-left: auto; border-radius: 23rpx 8rpx 23rpx 23rpx; background: #e0f1eb; }
+.message-role { margin-bottom: 6rpx; color: #526d66; font-size: 12px; font-weight: 650; }
+.message-content, .knowledge-content { white-space: pre-wrap; overflow-wrap: anywhere; }
+.candidate { margin-top: 16rpx; padding: 14rpx 16rpx 8rpx; border-radius: 12rpx; background: #eaf5f1; }
+.candidate-title { color: #13695c; font-weight: 700; }
+.candidate-button, .read-aloud { margin: 6rpx 0 0; padding-left: 0; justify-content: flex-start; text-align: left; }
+.source { margin-top: 8rpx; font-size: 12px; overflow-wrap: anywhere; }
+
+.composer {
+  flex: none;
+  padding: 8px 12px;
+  padding-bottom: calc(8px + env(safe-area-inset-bottom));
+  border-top: 1rpx solid #dae7e2;
+  background: #fff;
+}
+
+.composer-input { height: 56px; padding: 8px 10px; }
+.composer-actions {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  margin-top: 6px;
+}
+.voice-button { padding-left: 0; white-space: nowrap; }
+.voice-button.recording { color: #9c4239; }
+.voice-hint { min-width: 0; font-size: 12px; }
+.send { min-width: 62px; padding: 6px 11px; font-size: 14px; }
+.inline-error { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 6px; }
+.inline-error .text-button { flex: none; }
+.help-card { padding: 24rpx 28rpx; }
+.help-text { margin: 16rpx 0; }
+.help-heading { margin: 30rpx 0 14rpx; font-weight: 700; }
+.knowledge-item { margin-bottom: 12rpx; padding: 8rpx 14rpx; border: 1rpx solid #dae7e2; border-radius: 14rpx; background: #fff; }
+.knowledge-title { --button-width: 100%; display: flex; justify-content: space-between; gap: 8px; text-align: left; }
+.knowledge-content { padding: 10rpx 16rpx 18rpx; font-size: 14px; }
+
+@media (max-height: 520px) {
+  .welcome-icon { display: none; }
+  .assistant-header .avatar { width: 34px; height: 34px; }
+  .assistant-header { padding-top: 6px; padding-bottom: 6px; }
+}

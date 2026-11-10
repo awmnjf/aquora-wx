@@ -1,0 +1,118 @@
+<app-header id="app-header" />
+<view class="page today-page">
+  <view class="today-heading">
+    <view class="today-title">今日</view>
+    <view class="mode-switch" aria-label="今日模式">
+      <button class="mode {{mode === 'home' ? 'active' : ''}}" data-mode="home" bindtap="chooseMode" aria-pressed="{{mode === 'home'}}"><image src="/assets/ui/home.png" mode="aspectFit" aria-hidden="true"/>居家模式</button>
+      <button class="mode {{mode === 'outdoor' ? 'active' : ''}}" data-mode="outdoor" bindtap="chooseMode" aria-pressed="{{mode === 'outdoor'}}"><image src="/assets/ui/outdoor.png" mode="aspectFit" aria-hidden="true"/>外出模式</button>
+    </view>
+  </view>
+
+  <view wx:if="{{error}}" class="error-box">{{error}}<button class="text-button" bindtap="refresh">重新加载</button></view>
+  <view wx:if="{{loading && !overview}}" class="panel muted">正在加载今日记录…</view>
+  <outdoor-map wx:if="{{mode === 'outdoor'}}" estimate="{{estimate}}" voice="{{voice}}" busy="{{busy}}" bind:details="toggleDetails" bind:voicestart="beginVoice" bind:voiceend="stopVoice" bind:voicecancel="cancelVoice" />
+  <block wx:elif="{{overview}}">
+    <view class="today-card">
+      <view class="state-heading">
+        <text>膀胱状态</text><text class="state-tag">{{!estimate.available ? '待估算' : estimate.initial ? '初步估算' : '根据个人数据估算'}}</text>
+      </view>
+      <view class="state-body">
+        <button class="gauge-button" bindtap="toggleDetails" aria-label="查看膀胱状态详情">
+          <view class="status-pearl">
+            <view class="pearl-water {{estimate.tone}}" style="height: {{estimate.percent}}%;"></view>
+          </view>
+          <view class="gauge-reading">
+            <view class="gauge-sentence">建议排空时间：<text>{{estimate.when || '暂无估算'}}</text></view>
+            <view>当前：<text>{{estimate.targetMl ? estimate.amount + 'ml/' + estimate.scale + 'ml' : '—'}}</text></view>
+            <view>参考膀胱充盈状态：<text>{{estimate.targetMl ? estimate.targetMl + 'ml' : '—'}}</text></view>
+          </view>
+        </button>
+        <view class="water-goal">
+          <view class="water-label"><image src="/assets/ui/drink.png" mode="aspectFit" aria-hidden="true"/>今日饮水</view>
+          <view class="water-value">{{overview.drinks}} <text>ml</text></view>
+          <button class="text-button goal-button" bindtap="openGoal">{{overview.goal ? '/ ' + overview.goal + ' ml · 修改目标' : '设饮水目标'}} ›</button>
+          <progress wx:if="{{overview.goal}}" percent="{{overview.progress}}" stroke-width="5" border-radius="5" activeColor="#438c7c" backgroundColor="#cddfd7" />
+        </view>
+      </view>
+      <view class="state-foot"><text>{{estimate.footer}}</text><button class="text-button details-link" bindtap="toggleDetails">看详情 ›</button></view>
+
+      <view class="quick-tools" aria-label="快速记录">
+        <button wx:for="{{kinds}}" wx:key="value" class="quick-tool" data-kind="{{item.value}}" bindtap="openRecord">
+          <image src="{{'/assets/ui/' + item.value + '.png'}}" mode="aspectFit" aria-hidden="true"/><text>{{item.label}}</text>
+        </button>
+      </view>
+      <button class="voice-button" bindtouchstart="beginVoice" bindtouchend="stopVoice" bindtouchcancel="cancelVoice" aria-label="按住说话，松开发送给小澜助手">
+        <image src="/assets/ui/mic.png" mode="aspectFit" aria-hidden="true"/>
+        <text>{{busy ? '正在询问小澜…' : voice === 'recording' ? '正在聆听…' : voice === 'starting' ? '准备录音…' : voice === 'transcribing' ? '正在识别语音…' : '按住说话'}}</text>
+        <text class="voice-hint">{{busy || voice === 'transcribing' ? '请稍候' : '松开发送'}}</text>
+      </button>
+    </view>
+
+    <view class="recent-card">
+      <view class="recent-heading">
+        <view>最近记录 <text>近24小时</text></view>
+        <button class="text-button recent-expand" bindtap="toggleRecent" aria-expanded="{{expanded}}">{{expanded ? '收起记录 ⌃' : '展开记录 ⌄'}}</button>
+      </view>
+      <view wx:if="{{recentError}}" class="error-box">{{recentError}}<button class="text-button" bindtap="refresh">重试</button></view>
+      <scroll-view wx:elif="{{overview.timeline.length}}" scroll-x class="recent-rail" scroll-into-view="{{overview.timelineEnd}}" aria-label="近24小时事件时间线，可左右滑动">
+        <view class="recent-track">
+          <button wx:for="{{overview.timeline}}" wx:key="id" class="recent-stop {{item.infection ? 'infected' : ''}}" data-id="{{item.id}}" bindtap="editRecent">
+            <text class="recent-time">{{item.time}}</text>
+            <view class="recent-node"><image src="{{'/assets/ui/' + item.kind + '.png'}}" mode="aspectFit" aria-hidden="true"/></view>
+            <text class="recent-label">{{item.label}}</text>
+            <view class="recent-volume">{{item.volume == null ? '未测量' : item.volume}}<text wx:if="{{item.volume != null}}"> ml</text></view>
+            <text wx:if="{{item.infection}}" class="infection-label">尿道感染</text>
+          </button>
+          <view class="recent-now" id="{{overview.timelineEnd}}"><text>现在</text><view></view></view>
+        </view>
+      </scroll-view>
+      <view wx:else class="recent-empty"><view></view><text>{{recentLoading ? '正在读取最近记录…' : '还没有记录，从上方记下第一笔'}}</text></view>
+
+      <view wx:if="{{expanded}}" class="recent-list">
+        <view wx:for="{{overview.records}}" wx:key="id" class="record-row">
+          <button class="text-button record-entry" data-id="{{item.id}}" bindtap="editRecent">
+            <text class="record-time">{{item.time}}</text>
+            <image src="{{'/assets/ui/' + item.kind + '.png'}}" mode="aspectFit" aria-hidden="true"/>
+            <view class="record-copy"><text>{{item.label}}</text><text wx:if="{{item.note}}" class="record-note">{{item.note}}</text><text wx:if="{{item.observations}}" class="record-note">{{item.observations}}</text></view>
+            <text class="record-amount">{{item.amount || '›'}}</text>
+          </button>
+          <button class="text-button delete-entry" data-id="{{item.id}}" bindtap="confirmDelete" disabled="{{deleting}}" aria-label="删除这条记录">删除</button>
+        </view>
+        <navigator class="text-button recent-all" url="/pages/records/index">查看全部记录 ›</navigator>
+      </view>
+    </view>
+  </block>
+  <view wx:if="{{voiceError}}" class="error-box voice-error">{{voiceError}}</view>
+</view>
+
+<view wx:if="{{details}}" class="editor-cover today-detail">
+  <view class="editor-sheet">
+    <view class="editor-header"><text class="heading">膀胱状态</text><button class="text-button" bindtap="toggleDetails">关闭</button></view>
+    <scroll-view class="editor-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+      <view class="editor-body">
+        <block wx:if="{{estimate.available}}">
+          <view class="detail-current"><view>{{estimate.label}}</view><view><text>{{estimate.amount}}</text> 毫升</view></view>
+          <view class="muted">{{estimate.absolute ? '从实测或充分排空记录开始估算。' : '开始时膀胱里有多少尿还不清楚，这里只算后来增加的尿量。'}}</view>
+          <view wx:if="{{estimate.points.length}}" class="forecast-points">
+            <view class="forecast-point" wx:for="{{estimate.points}}" wx:key="minutes"><text>{{item.time}}后</text><view>{{item.value}} <text>ml</text></view></view>
+          </view>
+          <view class="muted">假设此后没有新的摄入、排尿或漏尿。</view>
+          <view wx:if="{{estimate.target}}" class="detail-reference"><text>{{estimate.target}}</text><text>{{estimate.when}}</text></view>
+          <button class="text-button" bindtap="toggleEstimateMethod">{{moreEstimate ? '收起计算说明' : '这个结果怎么算的？'}}</button>
+          <view wx:if="{{moreEstimate}}" class="muted">
+            <view wx:if="{{estimate.source}}">估算起点 {{estimate.source}}</view>
+            <view>{{estimate.initial ? '当前按一般情况估算。' : '参考近期 ' + estimate.intervals + ' 段有效排空间隔。'}}</view>
+            <view wx:if="{{estimate.range}}">速率变化 ±30% 时为 {{estimate.range}}。</view>
+          </view>
+          <view class="detail-note muted">研究性估算供参考。实际排尿或导尿时间请按个人护理计划。</view>
+        </block>
+        <block wx:else>
+          <view class="detail-current">当前暂无法估算</view><view class="muted">{{estimate.message}}</view>
+          <navigator class="text-button" open-type="switchTab" url="/pages/profile/index">查看个人档案 ›</navigator>
+        </block>
+      </view>
+    </scroll-view>
+  </view>
+</view>
+<plan-editor id="plan-editor" bind:saved="refresh" />
+<record-editor id="record-editor" tab-page="{{true}}" bind:saved="refresh" />

@@ -1,0 +1,9 @@
+{
+  "navigationBarTitleText": "今日 · 水知己",
+  "enablePullDownRefresh": true,
+  "usingComponents": {
+    "record-editor": "/components/record-editor/index",
+    "outdoor-map": "/components/outdoor-map/index",
+    "plan-editor": "/components/plan-editor/index"
+  }
+}

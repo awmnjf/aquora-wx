@@ -1,0 +1,18 @@
+.page-title { margin: 2px 0 9px; color: #163f3a; font-size: 21px; }
+.profile-page > .panel { margin-bottom: 24rpx; }
+.identity, .shortcut, .setting, .switch-row { display: flex; align-items: center; gap: 8px; }
+.identity { border-color: #c7dbd1; border-radius: 18px; background: #dcece5; }
+.identity .text-button { flex: none; white-space: nowrap; border: 1rpx solid #a9c7bb; border-radius: 8px; background: #f0f7f2; font-size: 13px; }
+.avatar { width: 40px; height: 40px; flex-shrink: 0; border-radius: 14px; display: flex; justify-content: center; align-items: center; background: #24655c; color: white; font-size: 18px; font-weight: 650; }
+.identity-main { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.shortcut { justify-content: space-between; color: #395a60; background: #f1f5f6; font-weight: 650; }
+.group { padding-top: 24rpx; padding-bottom: 10rpx; }
+.group-title { font-size: 30rpx; margin-bottom: 10rpx; }
+.setting { --button-width: 100%; width: 100%; min-height: 48px; margin: 0; padding: 8px 0; border: 0; border-top: 1rpx solid #e4eee9; border-radius: 0; background: transparent; color: #17332e; text-align: left; font-size: 15px; line-height: 1.4; box-sizing: border-box; }
+.setting::after, .secondary-button::after { border: 0; }
+.setting-label { flex: 1; min-width: 0; }
+.setting-detail { max-width: 50%; color: #526d66; text-align: right; font-size: 13px; overflow-wrap: anywhere; }
+.switch-row, .account { justify-content: space-between; }
+.form-hint { margin-bottom: 12px; }
+.advanced-toggle { margin-bottom: 16rpx; padding-left: 0; }
+.secondary-button { --button-width: 100%; margin: 7px 0; border: 0; border-radius: 8px; background: #e5f2ed; color: #13695c; font-size: 15px; }

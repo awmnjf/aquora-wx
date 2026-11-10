@@ -1,0 +1,78 @@
+{
+  "pages": [
+    "pages/login/index",
+    "pages/today/index",
+    "pages/record/index",
+    "pages/records/index",
+    "pages/learn/index",
+    "pages/learn/reader",
+    "pages/assistant/index",
+    "pages/reports/index",
+    "pages/profile/index",
+    "pages/plan/index",
+    "pages/notifications/index",
+    "pages/research/index",
+    "pages/photo/index",
+    "pages/map/index",
+    "pages/admin/index"
+  ],
+  "window": {
+    "navigationBarTitleText": "水知己",
+    "navigationBarBackgroundColor": "#f6fafa",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#f6fafa",
+    "backgroundTextStyle": "dark"
+  },
+  "usingComponents": {
+    "app-header": "/components/app-header/index"
+  },
+  "tabBar": {
+    "color": "#526d66",
+    "selectedColor": "#13695c",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/today/index",
+        "text": "今日",
+        "iconPath": "assets/tabs/today.png",
+        "selectedIconPath": "assets/tabs/today-active.png"
+      },
+      {
+        "pagePath": "pages/learn/index",
+        "text": "健康课堂",
+        "iconPath": "assets/tabs/learn.png",
+        "selectedIconPath": "assets/tabs/learn-active.png"
+      },
+      {
+        "pagePath": "pages/assistant/index",
+        "text": "小澜助手",
+        "iconPath": "assets/tabs/assistant.png",
+        "selectedIconPath": "assets/tabs/assistant-active.png"
+      },
+      {
+        "pagePath": "pages/reports/index",
+        "text": "个人报告",
+        "iconPath": "assets/tabs/reports.png",
+        "selectedIconPath": "assets/tabs/reports-active.png"
+      },
+      {
+        "pagePath": "pages/profile/index",
+        "text": "我的",
+        "iconPath": "assets/tabs/profile.png",
+        "selectedIconPath": "assets/tabs/profile-active.png"
+      }
+    ]
+  },
+  "permission": {
+    "scope.userLocation": {
+      "desc": "用于在外出模式查看附近洗手间和地图导航"
+    }
+  },
+  "requiredPrivateInfos": [
+    "getLocation",
+    "chooseLocation"
+  ],
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

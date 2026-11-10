@@ -1,0 +1,59 @@
+<view class="page login-page">
+  <view class="brand">
+    <image class="brand-mark" src="/assets/ui/brand.png" mode="aspectFit" aria-hidden="true"/>
+    <text class="brand-title">水知己</text>
+  </view>
+  <view class="panel auth-card">
+  <view class="welcome-label">欢迎来到水知己</view>
+  <view class="auth-title">{{mode === 'login' ? '继续您的日常' : '开启新的记录'}}</view>
+  <view class="muted auth-intro">{{mode === 'login' ? '登录后，您的记录和安排都在这里。' : '创建个人账号，记录从第一笔开始。'}}</view>
+  <view wx:if="{{restoring}}" class="muted auth-intro">正在恢复上次登录…</view>
+  <form bindsubmit="onSubmit">
+    <view class="auth-modes">
+      <button class="auth-mode {{mode === 'login' ? 'active' : ''}}" data-mode="login" bindtap="chooseMode">登录</button>
+      <button class="auth-mode {{mode === 'register' ? 'active' : ''}}" data-mode="register" bindtap="chooseMode">注册</button>
+    </view>
+    <view class="field">
+      <text class="label">账号</text>
+      <input id="username" class="input" name="username" maxlength="32" placeholder="{{mode === 'register' ? '4–32 位，字母开头' : '输入账号'}}" />
+    </view>
+    <view wx:if="{{mode === 'register'}}" class="field">
+      <text class="label">昵称</text>
+      <input class="input" name="displayName" maxlength="40" placeholder="怎么称呼您" />
+    </view>
+    <view class="field">
+      <text class="label">密码</text>
+      <view class="password-row">
+        <input id="password" class="input" name="password" password="{{!showPassword}}" maxlength="72" placeholder="{{mode === 'register' ? '至少 10 位字符' : '输入密码'}}" />
+        <button class="text-button" bindtap="togglePassword">{{showPassword ? '隐藏' : '显示'}}</button>
+      </view>
+    </view>
+    <view wx:if="{{mode === 'register'}}" class="terms">
+      <checkbox-group bindchange="changeTerms"><label><checkbox value="agree" checked="{{terms}}" color="#13695c" />我已阅读并同意</label></checkbox-group>
+      <button class="text-button" bindtap="toggleLegal">用户协议与隐私说明</button>
+    </view>
+    <view wx:if="{{error}}" class="error-box">{{error}}</view>
+    <button id="sign-in" class="primary-button block-button" form-type="submit" loading="{{submitting}}" disabled="{{restoring || submitting || demoBusy}}">{{mode === 'register' ? '创建账号' : '登录'}}</button>
+  </form>
+  <view class="auth-extra">
+    <view class="auth-divider"><text>先感受一下</text></view>
+    <button class="text-button demo-button" bindtap="openDemo" loading="{{demoBusy}}" disabled="{{restoring || submitting || demoBusy}}">进入独立体验空间</button>
+    <view class="muted">使用独立示例数据，不影响任何真实用户。</view>
+    <button wx:if="{{mode === 'login'}}" class="text-button" bindtap="toggleLegal">用户协议与隐私说明</button>
+  </view>
+  </view>
+  <view wx:if="{{legal}}" class="panel auth-extra legal">
+    <view class="heading">用户协议与隐私说明</view>
+    <view class="label">服务范围</view>
+    <view>水知己提供个人护理记录、既有计划转录、站内提醒与研究性趋势估算。请依照您已有的护理方案使用。</view>
+    <view class="label">数据与权限</view>
+    <view>注册信息、您主动保存的健康记录、计划和对话保存在水知己服务。其他普通用户无法访问您的记录。运营后台提供账号管理和汇总统计。</view>
+    <view class="label">照片、录音与位置</view>
+    <view>主动使用识别、语音或附近洗手间时，相应输入用于完成当次请求。请勿在对话中输入与日常护理无关的个人信息。</view>
+    <view class="label">提醒与估算</view>
+    <view>提醒在小程序内查看。研究性估算供记录参考，排尿或导尿请遵循您的护理计划。</view>
+    <view class="label">控制与撤销</view>
+    <view>您可以导出、修订或撤销单笔记录。账号删除或凭证找回请联系本服务运营负责人。</view>
+    <button class="text-button" bindtap="toggleLegal">收起说明</button>
+  </view>
+</view>

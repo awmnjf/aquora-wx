@@ -1,0 +1,60 @@
+<app-header id="app-header" />
+<view class="page learn-page">
+  <view class="learn-intro">
+    <view class="learn-title">健康课堂</view>
+    <button class="text-button search-toggle" bindtap="toggleSearch" aria-label="{{searchOpen ? '关闭搜索' : '搜索科普'}}" aria-expanded="{{searchOpen}}"><text wx:if="{{searchOpen}}">×</text><image wx:else src="/assets/ui/search.png" mode="aspectFit" aria-hidden="true"/></button>
+  </view>
+  <view wx:if="{{searchOpen}}" class="search-box">
+    <input class="search-input" type="text" confirm-type="search" maxlength="100" value="{{query}}" bindinput="changeQuery" placeholder="搜索导尿、饮水、肾功能…" aria-label="搜索科普内容" />
+    <button wx:if="{{query}}" class="text-button" bindtap="clearQuery">清空</button>
+  </view>
+
+  <view wx:if="{{!searching}}" class="featured">
+    <swiper class="featured-swiper" circular autoplay="{{active && rotating}}" interval="5500" current="{{slide}}" bindchange="changeSlide">
+      <swiper-item wx:for="{{featured}}" wx:key="id">
+        <view class="featured-card cover scene-{{item.coverScene}}" data-id="{{item.id}}" bindtap="openEntry" aria-label="{{item.title}}">
+          <view class="featured-copy">
+            <text class="featured-badge">{{item.video ? item.badge : '精选图文'}}</text>
+            <view class="featured-title">{{item.title}}</view>
+            <view class="featured-source">{{item.sourceShort}} ›</view>
+          </view>
+        </view>
+      </swiper-item>
+    </swiper>
+    <view class="featured-controls">
+      <view class="feature-dots">
+        <button wx:for="{{featured}}" wx:key="id" class="text-button feature-dot {{slide === index ? 'current' : ''}}" data-index="{{index}}" bindtap="chooseSlide" aria-label="{{item.title}}"><view></view></button>
+      </view>
+      <view class="feature-buttons">
+        <button class="text-button" data-delta="-1" bindtap="stepSlide" aria-label="上一张">‹</button>
+        <button class="text-button" bindtap="toggleRotation" aria-label="{{rotating ? '暂停自动轮播' : '开始自动轮播'}}">{{rotating ? 'Ⅱ' : '▶'}}</button>
+        <button class="text-button" data-delta="1" bindtap="stepSlide" aria-label="下一张">›</button>
+      </view>
+    </view>
+  </view>
+
+  <scroll-view class="category-scroll" scroll-x>
+    <view class="categories" aria-label="科普分类">
+      <button wx:for="{{categories}}" wx:key="*this" class="category {{category === item ? 'selected' : ''}}" data-category="{{item}}" bindtap="chooseCategory">{{item}}</button>
+    </view>
+  </scroll-view>
+  <view wx:if="{{searching}}" class="feed-heading">
+    <view class="heading">{{searching ? '搜索结果' : category === '最新' ? '最新收录' : category}}</view>
+    <text class="muted">{{entries.length}} 篇内容</text>
+  </view>
+
+  <view class="feed">
+    <view wx:for="{{entries}}" wx:key="id" class="entry" data-id="{{item.id}}" bindtap="openEntry" aria-label="{{item.title}}">
+      <view class="entry-cover cover scene-{{item.coverScene}}">
+        <text class="entry-badge">{{item.video ? '▶ ' : ''}}{{item.badge}}</text>
+      </view>
+      <view class="entry-copy">
+        <view class="entry-category">{{item.category}}</view>
+        <view class="entry-title">{{item.title}}</view>
+        <view class="entry-source">{{item.sourceShort}}</view>
+      </view>
+    </view>
+  </view>
+  <view wx:if="{{!entries.length}}" class="panel empty-feed">没有找到相关内容，试试“导尿”或“饮水”。</view>
+  <view class="learn-note">科普内容附原始出处与核对日期。封面为水知己 AI 配图。</view>
+</view>

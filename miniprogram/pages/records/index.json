@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "历史记录",
+  "enablePullDownRefresh": true,
+  "usingComponents": {
+    "record-editor": "/components/record-editor/index"
+  }
+}

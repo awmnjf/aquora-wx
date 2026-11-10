@@ -1,0 +1,64 @@
+<template name="amount-field">
+  <view class="field"><text class="label">{{field.label}}</text><input type="digit" class="input" data-field="{{field.key}}" value="{{value}}" bindinput="updateField" placeholder="0 至 {{field.max}}"/></view>
+</template>
+
+<view class="page research-page">
+  <view class="heading page-title">算法研究</view>
+  <view class="muted intro">自愿参与未来两小时产尿量研究。加入后会采集饮水、排尿和漏尿记录及修订，开始观测时还会保存此前 24 小时的饮水记录。退出会删除个人研究副本。</view>
+
+  <view wx:if="{{message}}" class="success-box">{{message}}</view>
+  <view wx:if="{{error}}" class="error-box">{{error}}<button class="text-button" bindtap="refresh">重试</button></view>
+  <view wx:if="{{blocked}}" class="panel muted">体验账号无法加入真实数据研究。</view>
+  <view wx:elif="{{loading && !ready}}" class="panel muted">正在读取参加状态…</view>
+
+  <block wx:if="{{ready}}">
+    <view wx:if="{{!enrolled}}" class="panel">
+      <view class="heading">参加研究</view>
+      <view class="muted section-copy">可以在这里随时退出并删除个人研究记录。</view>
+      <button class="primary-button" bindtap="enroll" disabled="{{busy}}" loading="{{busy}}">同意并加入研究</button>
+    </view>
+
+    <block wx:else>
+      <view wx:if="{{editor}}" class="panel">
+        <view class="section-head">
+          <view class="heading">{{editor === 'start' ? '开始实测窗口' : '填写实测结果'}}</view>
+          <button class="text-button" bindtap="closeEditor" disabled="{{busy}}">取消</button>
+        </view>
+        <block wx:if="{{editor === 'start'}}">
+          <view class="muted section-copy">需要提交时与恰好两小时前的实测容量，以及两次测量之间的完整排出量。请跳过实测容量未知的窗口。</view>
+          <block wx:for="{{startFields}}" wx:key="key"><template is="amount-field" data="{{field: item, value: form[item.key]}}"/></block>
+          <view class="muted section-copy">有饮水计划时填写两个小时的计划量。计划不喝填 0，无计划请将两项留空。</view>
+          <block wx:for="{{planFields}}" wx:key="key"><template is="amount-field" data="{{field: item, value: form[item.key]}}"/></block>
+          <checkbox-group class="field" bindchange="confirmComplete"><label class="check-row"><checkbox color="#13695c" value="complete" checked="{{form.complete}}"/>确认上述实测对应提交时的完整区间，过去 24 小时饮水已记全。</label></checkbox-group>
+        </block>
+        <block wx:else>
+          <view class="notice-target">目标测量时刻（北京时间）<text>{{selected.targetText}}</text></view>
+          <view class="muted section-copy">请核对原始实测记录。漏测可保留为待核验。</view>
+          <view class="field"><text class="label">实际测量时间（北京时间）</text><input class="input timestamp" data-field="measuredAt" value="{{form.measuredAt}}" bindinput="updateField" maxlength="23" placeholder="YYYY-MM-DD HH:mm:ss.SSS"/></view>
+          <block wx:for="{{labelFields}}" wx:key="key"><template is="amount-field" data="{{field: item, value: form[item.key]}}"/></block>
+          <checkbox-group class="field" bindchange="confirmComplete"><label class="check-row"><checkbox color="#13695c" value="complete" checked="{{form.complete}}"/>确认测量对应目标时刻，已核对全部排出量。</label></checkbox-group>
+        </block>
+        <view wx:if="{{formError}}" class="error-box">{{formError}}</view>
+        <button class="primary-button" bindtap="submitEditor" disabled="{{busy}}" loading="{{busy}}">
+          {{editor === 'start' ? '保存并开始两小时观测' : '提交实测结果'}}
+        </button>
+      </view>
+
+      <view class="panel">
+        <view class="section-head"><view class="heading">观测窗口</view><view class="chip">已参加</view></view>
+        <view class="muted section-copy">目标测量时刻为开始观测后的两小时，统一显示北京时间。</view>
+        <button wx:if="{{!editor}}" class="primary-button start-button" bindtap="openStart" disabled="{{busy || activeWindow}}">
+          {{activeWindow ? '已有窗口正在观测' : '开始实测窗口'}}
+        </button>
+        <view wx:if="{{!windows.length}}" class="muted">暂无观测窗口。</view>
+        <view wx:for="{{windows}}" wx:key="id" class="window-row">
+          <view class="section-head window-title"><text>目标 {{item.targetText}}</text><text class="chip">{{item.verified ? '已核验' : item.due ? '待核验' : '观测中'}}</text></view>
+          <view class="muted window-origin">开始 {{item.originText}}</view>
+          <button wx:if="{{!item.verified && item.due && !editor}}" class="text-button label-button" bindtap="openLabel" data-id="{{item.id}}" disabled="{{busy}}">填写实测结果 ›</button>
+        </view>
+      </view>
+
+      <button class="text-button leave-button" bindtap="confirmWithdraw" disabled="{{busy}}">退出并删除研究记录</button>
+    </block>
+  </block>
+</view>

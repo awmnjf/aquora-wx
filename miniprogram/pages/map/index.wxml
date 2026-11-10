@@ -1,0 +1,2 @@
+<include src="../../components/outdoor-map/view.wxml"/>
+<record-editor id="record-editor" />

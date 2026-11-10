@@ -1,0 +1,11 @@
+.hint { margin-top: 10rpx; }
+.actions, .filters { display: flex; flex-wrap: wrap; gap: 10rpx; margin: 22rpx 0; align-items: center; }
+.filter { margin: 0; padding: 6px 8px; border: 1rpx solid #d6e6df; border-radius: 8px; color: #38564e; background: #fff; line-height: 1.4; font-size: 14px; }
+.filter::after { border: 0; }
+.filter.active { border-color: #13695c; background: #e5f3ed; color: #13695c; font-weight: 700; }
+.day { margin-top: 20rpx; }
+.record { display: flex; justify-content: space-between; min-height: 44px; gap: 8px; border-top: 1rpx solid #e1ebe7; padding: 8px 0; margin-top: 4px; box-sizing: border-box; }
+.record-content { flex: 1; min-width: 0; }
+.record-amount { white-space: nowrap; color: #13695c; font-weight: 650; }
+.time { margin-left: 4px; font-size: 13px; }
+.note { overflow-wrap: anywhere; font-size: 13px; }

@@ -1,0 +1,13 @@
+<view wx:if="{{open}}" class="record-backdrop" bindtap="dismiss" catchtouchmove="keepOpen">
+  <view class="record-dialog" catchtap="keepOpen" role="dialog" aria-label="{{editing ? '修订记录' : '记录'}}">
+    <view class="record-header">
+      <text>{{editing ? '修订记录' : '记录'}}</text>
+      <button class="text-button record-close" bindtap="dismiss" disabled="{{submitting}}" aria-label="关闭">×</button>
+    </view>
+    <scroll-view scroll-y enhanced show-scrollbar="{{false}}" class="record-scroll">
+      <view class="record-body">
+        <include src="./form.wxml"/>
+      </view>
+    </scroll-view>
+  </view>
+</view>

@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "小澜助手",
+  "disableScroll": true,
+  "usingComponents": {
+    "record-editor": "/components/record-editor/index"
+  }
+}

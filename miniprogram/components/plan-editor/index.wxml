@@ -1,0 +1,13 @@
+<view wx:if="{{open}}" class="editor-cover">
+  <view class="editor-sheet">
+    <view class="editor-header"><text class="heading">转录个人护理安排</text><button class="text-button" bindtap="closeEditor" disabled="{{busy}}">关闭</button></view>
+    <scroll-view class="editor-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+      <view class="editor-body">
+        <include src="./fields.wxml"/>
+        <view wx:if="{{error}}" class="error-box">{{error}}</view>
+        <button wx:if="{{conflict}}" class="primary-button" bindtap="reload">关闭并刷新方案</button>
+        <button wx:else class="primary-button" bindtap="save" loading="{{busy}}" disabled="{{busy}}">保存并启用新版本</button>
+      </view>
+    </scroll-view>
+  </view>
+</view>

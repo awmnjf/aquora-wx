@@ -1,0 +1,78 @@
+<app-header id="app-header" />
+<view class="assistant-page">
+  <view class="assistant-header">
+    <view class="avatar" aria-hidden="true">✦</view>
+    <view class="identity">
+      <view class="heading">小澜助手</view>
+      <view class="muted subtitle">记录由您确认后保存</view>
+    </view>
+    <button class="text-button header-action" bindtap="toggleHelp" aria-label="使用说明">说明</button>
+    <button class="text-button header-action" bindtap="clearHistory" disabled="{{loading || busy || voice !== 'idle' || !messages.length}}" aria-label="清空对话">清空</button>
+  </view>
+
+  <view wx:if="{{help || scenario !== 'chat'}}" class="scenario-row" aria-label="助手场景">
+    <button wx:for="{{scenarios}}" wx:key="id" class="scenario {{scenario === item.id ? 'selected' : ''}}" data-id="{{item.id}}" bindtap="chooseScenario" disabled="{{busy || voice !== 'idle'}}" aria-pressed="{{scenario === item.id}}">{{item.label}}</button>
+  </view>
+
+  <scroll-view wx:if="{{help}}" class="thread help" scroll-y aria-label="使用说明">
+    <view class="help-card">
+      <view class="heading">使用说明</view>
+      <view class="help-text">小澜可以整理待确认记录、查找已保存的记录和护理计划。使用「居家」可整理个人笔记，使用「外出」可查询城市天气。</view>
+      <view class="help-text">点击「语音输入」开始，点击「结束录音」完成。对话模式下，识别文字会填入输入框，其他场景会发送语音识别结果。</view>
+      <view class="help-heading">使用知识</view>
+      <view wx:if="{{knowledgeLoading}}" class="muted">正在加载…</view>
+      <view wx:elif="{{knowledgeError}}" class="error-box">{{knowledgeError}}</view>
+      <view wx:elif="{{!knowledge.length}}" class="muted">暂无已发布的使用知识。</view>
+      <view wx:for="{{knowledge}}" wx:key="id" class="knowledge-item">
+        <button class="text-button knowledge-title" data-id="{{item.id}}" bindtap="toggleKnowledge" aria-expanded="{{knowledgeOpen === item.id}}">{{item.title}} <text>{{knowledgeOpen === item.id ? '−' : '+'}}</text></button>
+        <view wx:if="{{knowledgeOpen === item.id}}" class="knowledge-content">
+          <text user-select="{{true}}">{{item.content}}</text>
+          <view wx:if="{{item.source}}" class="muted">来源 {{item.source}}</view>
+        </view>
+      </view>
+      <button class="text-button" bindtap="toggleHelp">返回对话</button>
+    </view>
+  </scroll-view>
+
+  <scroll-view wx:else class="thread" scroll-y scroll-into-view="{{scrollTarget}}" aria-label="对话记录">
+    <view class="thread-content">
+      <view wx:if="{{loading && !messages.length}}" class="welcome muted">正在读取对话…</view>
+      <view wx:elif="{{!messages.length}}" class="welcome">
+        <view class="welcome-icon" aria-hidden="true">✦</view>
+        <view class="welcome-title">把日常，说给小澜听。</view>
+        <view class="muted welcome-subtitle">记饮水、查记录，也可以聊聊护理计划。</view>
+        <button wx:for="{{suggestions}}" wx:key="*this" class="suggestion" data-text="{{item}}" bindtap="sendSuggestion" disabled="{{busy || voice !== 'idle'}}"><text>{{scenario === 'chat' ? chatLabels[index] : item}}</text><text aria-hidden="true">›</text></button>
+      </view>
+      <view wx:for="{{messages}}" wx:key="id" id="{{item.id}}" class="message {{item.role}}">
+        <view class="message-role">{{item.role === 'user' ? '我' : '小澜'}}</view>
+        <text class="message-content" user-select="{{true}}">{{item.content}}</text>
+        <view wx:if="{{item.candidate}}" class="candidate">
+          <view class="candidate-title">待确认记录</view>
+          <view>{{item.candidateLabel}}</view>
+          <button class="text-button candidate-button" data-id="{{item.id}}" bindtap="openDraft">核对并记录 ›</button>
+        </view>
+        <view wx:for="{{item.sources}}" wx:for-item="source" wx:key="title" class="source muted">{{source.title}} {{source.source}}</view>
+        <button wx:if="{{item.role === 'assistant'}}" class="text-button read-aloud" data-id="{{item.id}}" bindtap="speak" disabled="{{voice !== 'idle'}}" aria-label="{{speechId === item.id ? speechLabel : '朗读回答'}}">{{speechId === item.id ? speechLabel : '朗读'}}</button>
+      </view>
+      <view wx:if="{{busy}}" id="working" class="message assistant muted">正在整理…</view>
+    </view>
+  </scroll-view>
+
+  <view wx:if="{{!help}}" class="composer">
+    <view wx:if="{{error || voiceError}}" class="error-box inline-error">
+      <text>{{error || voiceError}}</text>
+      <button wx:if="{{historyError}}" class="text-button" bindtap="loadHistory">重试</button>
+    </view>
+    <textarea class="input composer-input" value="{{text}}" maxlength="2000" bindinput="onInput"
+      confirm-type="send" bindconfirm="sendText" cursor-spacing="64" show-confirm-bar="{{false}}"
+      placeholder="写下想记录或询问的内容…" aria-label="给小澜的消息" />
+    <view class="composer-actions">
+      <button class="text-button voice-button {{voice === 'recording' ? 'recording' : ''}}" bindtap="toggleVoice" disabled="{{busy || loading || voice === 'starting' || voice === 'transcribing'}}" aria-label="{{voice === 'recording' ? '结束录音' : '语音输入'}}">
+        {{voice === 'recording' ? '■ 结束录音' : voice === 'starting' ? '正在开启…' : voice === 'transcribing' ? '正在识别…' : '语音输入'}}
+      </button>
+      <text class="voice-hint muted">{{voice === 'recording' ? '正在聆听…' : scenario === 'chat' ? '语音转为文字' : '结束录音后发送'}}</text>
+      <button class="primary-button send" bindtap="sendText" disabled="{{!text || busy || loading || voice !== 'idle'}}">发送</button>
+    </view>
+  </view>
+</view>
+<record-editor id="record-editor" tab-page="{{true}}" />

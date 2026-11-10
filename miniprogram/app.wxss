@@ -1,0 +1,185 @@
+page {
+  background: #f6fafa;
+  color: #183741;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+button {
+  /* WeChat's v2 stylesheet gives standard buttons a fixed width and auto side margins. */
+  width: var(--button-width, auto) !important;
+  max-width: 100%;
+  min-height: 44px;
+  margin: 0;
+  margin-left: var(--button-side-margin, 0) !important;
+  margin-right: var(--button-side-margin, 0) !important;
+  box-sizing: border-box;
+}
+
+.page {
+  box-sizing: border-box;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 14px 14px 24px;
+  padding-bottom: calc(24px + env(safe-area-inset-bottom));
+}
+
+.panel {
+  min-width: 0;
+  padding: 14px;
+  border: 1rpx solid #dae7e2;
+  border-radius: 24rpx;
+  background: #ffffff;
+  box-sizing: border-box;
+}
+
+form.panel {
+  display: block;
+}
+
+.heading {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.muted {
+  color: #526d66;
+}
+
+.field {
+  margin-bottom: 14px;
+}
+
+.label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.input {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1rpx solid #cadcd5;
+  border-radius: 16rpx;
+  background: #f6faf8;
+  color: #17332e;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
+.primary-button {
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 0;
+  border-radius: 16rpx;
+  background: #13695c;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 650;
+  line-height: 1.5;
+}
+
+.primary-button.block-button {
+  --button-width: 100%;
+}
+
+.primary-button[disabled] {
+  background: #dbe9e4;
+  color: #547069;
+}
+
+.primary-button::after,
+.text-button::after {
+  border: 0;
+}
+
+.text-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  min-height: 44px;
+  padding: 6px 9px;
+  border: 0;
+  background: transparent;
+  color: #13695c;
+  font-size: 14px;
+  line-height: 1.5;
+  box-sizing: border-box;
+}
+
+.error-box {
+  margin: 0 0 22rpx;
+  padding: 18rpx 20rpx;
+  border-radius: 12rpx;
+  background: #fbefeb;
+  color: #87392c;
+  font-size: 14px;
+  overflow-wrap: break-word;
+}
+
+.editor-cover {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(13, 44, 37, 0.43);
+}
+
+.editor-sheet {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 540px;
+  height: 88vh;
+  max-height: 700px;
+  overflow: hidden;
+  border-radius: 16px 16px 0 0;
+  background: #fff;
+}
+
+.editor-short {
+  height: 66vh;
+  max-height: 480px;
+}
+
+.editor-header {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 14px;
+  border-bottom: 1rpx solid #dae7e2;
+}
+
+.editor-header .text-button {
+  flex: none;
+  min-width: 44px;
+}
+
+.editor-scroll {
+  flex: 1;
+  height: 0;
+  min-height: 0;
+}
+
+.editor-body {
+  padding: 12px 14px 18px;
+  padding-bottom: calc(18px + env(safe-area-inset-bottom));
+}
+
+.editor-body .primary-button {
+  --button-width: 100%;
+}
+
+@media (max-width: 360px) {
+  .page { padding-right: 12px; padding-left: 12px; }
+  .panel { padding-right: 12px; padding-left: 12px; }
+}

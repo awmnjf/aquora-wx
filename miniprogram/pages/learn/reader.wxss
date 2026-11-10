@@ -1,0 +1,23 @@
+@import "./cover.wxss";
+
+.reader { padding: 26rpx; }
+.reader-meta, .reader-byline { display: flex; flex-wrap: wrap; align-items: center; gap: 5px 8px; color: #526d66; font-size: 13px; }
+.reader-category { color: #13695c; border-radius: 20rpx; background: #e4f3eb; padding: 4rpx 12rpx; }
+.reader-title { margin: 8px 0; color: #17332e; font-size: 24px; line-height: 1.3; font-weight: 750; }
+.reader-summary { margin-bottom: 8px; color: #315a50; font-size: 16px; }
+.reader-byline { margin-bottom: 24rpx; }
+.reader-cover { height: 350rpx; border-radius: 18rpx; }
+.figure-note, .source-note, .source-detail { margin-top: 4px; color: #526d66; font-size: 13px; }
+.player { margin: 0 0 20rpx; }
+.lesson-video { width: 100%; height: 350rpx; border-radius: 18rpx; overflow: hidden; }
+.player-error { background: #fbefeb; color: #87392c; padding: 16rpx; border-radius: 12rpx; }
+.caption-block { background: #f1f7f4; padding: 16rpx; border-radius: 14rpx; margin-top: 12rpx; }
+.caption-title { color: #13695c; font-weight: 650; }
+.caption-line { color: #315a50; margin-top: 4px; font-size: 14px; }
+.takeaway { padding: 17rpx; margin: 22rpx 0; background: #e4f3eb; border-left: 5rpx solid #1f8a76; color: #21544a; font-weight: 650; }
+.reader-section { margin: 24rpx 0; }
+.section-body { margin-top: 6px; font-size: 16px; line-height: 1.75; white-space: pre-wrap; }
+.reader-sources { border-top: 1rpx solid #dbe8e3; padding-top: 20rpx; }
+.source-label { color: #13695c; font-weight: 650; }
+.source-title { margin-top: 7rpx; font-weight: 650; }
+.source-link { --button-width: fit-content; display: block; max-width: 100%; margin-top: 9rpx; padding-left: 0; text-align: left; white-space: normal; overflow-wrap: anywhere; }

@@ -1,0 +1,27 @@
+<app-header id="app-header" />
+<view class="page">
+  <view class="heading">历史记录</view>
+  <view class="muted hint">最近 30 天 · 可补记、修订或撤销</view>
+  <view class="actions">
+    <button class="primary-button" bindtap="openRecord">＋ 记一笔</button>
+    <button class="text-button" bindtap="exportRecords" loading="{{exporting}}" disabled="{{loading || exporting}}">导出记录</button>
+  </view>
+  <view class="filters">
+    <button wx:for="{{kinds}}" wx:key="value" class="filter {{kind === item.value ? 'active' : ''}}" data-kind="{{item.value}}" bindtap="changeKind">{{item.label}}</button>
+  </view>
+  <view wx:if="{{error}}" class="error-box">{{error}} <button class="text-button" bindtap="refresh">重试</button></view>
+  <view wx:if="{{loading && !groups.length}}" class="panel muted">正在加载记录…</view>
+  <view wx:if="{{!loading && !groups.length && !error}}" class="panel muted">没有符合条件的记录。</view>
+  <view wx:for="{{groups}}" wx:key="date" class="panel day">
+    <view class="heading">{{item.date}}</view>
+    <view wx:for="{{item.records}}" wx:for-item="record" wx:key="id" class="record" role="button" data-id="{{record.id}}" bindtap="openEdit">
+      <view class="record-content">
+        <view>{{record.label}} <text class="muted time">{{record.time}}</text></view>
+        <view wx:if="{{record.note}}" class="muted note">{{record.note}}</view>
+      </view>
+      <view class="record-amount">{{record.amount}} ›</view>
+    </view>
+  </view>
+  <button wx:if="{{hasMore}}" class="text-button" bindtap="loadMore">显示更多</button>
+</view>
+<record-editor id="record-editor" bind:saved="refresh" />

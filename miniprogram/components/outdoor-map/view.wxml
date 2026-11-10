@@ -1,0 +1,118 @@
+<view class="{{embedded ? 'map-page embedded-map' : 'page map-page'}}">
+  <view class="map-heading">
+    <view>
+      <view wx:if="{{!embedded}}" class="eyebrow">外出模式</view>
+      <view class="heading">{{includeOther ? '附近卫生间' : '无障碍卫生间'}}</view>
+    </view>
+    <picker mode="selector" range="{{radiusOptions}}" value="{{radiusIndex}}" bindchange="chooseRadius">
+      <view class="radius" aria-label="搜索范围">{{radiusOptions[radiusIndex]}} ▾</view>
+    </picker>
+  </view>
+
+  <view class="panel map-panel">
+    <view class="map-toolbar">
+      <button class="text-button" bindtap="locate" loading="{{locating}}" disabled="{{locating}}">定位</button>
+      <button class="text-button" bindtap="toggleSearch" aria-expanded="{{showSearch}}">搜索地点</button>
+      <button class="text-button" bindtap="chooseOnMap" disabled="{{locating}}">地图选点</button>
+    </view>
+    <view wx:if="{{showSearch}}" class="address-panel">
+      <view class="address-form">
+        <input class="input search-input" value="{{query}}" maxlength="100" placeholder="城市、商场或地址" confirm-type="search" bindinput="setQuery" bindconfirm="findCenters" aria-label="输入地点名称" />
+        <button class="primary-button search-button" bindtap="findCenters" disabled="{{finding || !query}}">{{finding ? '查找中' : '搜索'}}</button>
+      </view>
+      <view wx:if="{{addressError}}" class="muted map-note">{{addressError}}</view>
+      <button wx:for="{{centers}}" wx:key="id" class="text-button address-item" data-id="{{item.id}}" bindtap="chooseCenter">
+        <text class="place-name">{{item.name}}</text>
+        <text class="muted place-address">{{item.address}}</text>
+      </button>
+    </view>
+
+    <view class="map-canvas">
+      <map id="outing-map" class="native-map" longitude="{{longitude}}" latitude="{{latitude}}" scale="{{scale}}" markers="{{markers}}" circles="{{circles}}" bindmarkertap="selectMarker" aria-label="外出模式地图" />
+      <button wx:if="{{embedded && estimate}}" class="map-status" bindtap="openDetails" aria-label="查看膀胱状态详情">
+        <view class="map-pearl"><view class="map-water" style="height: {{estimate.percent}}%;"></view></view>
+        <view><view>建议排空时间：<text class="map-status-time">{{estimate.when || '暂无估算'}}</text></view><view>当前：{{estimate.targetMl ? estimate.amount + 'ml/' + estimate.scale + 'ml' : '—'}}</view></view>
+      </button>
+    </view>
+    <view class="map-center muted">
+      <text class="center-name">{{center ? '搜索中心 · ' + center.name : '选择搜索中心以查找附近卫生间'}}</text>
+      <button wx:if="{{center}}" class="text-button" bindtap="recenter">回到中心</button>
+    </view>
+
+    <view class="map-options">
+      <label class="ordinary-toggle"><switch class="ordinary-switch" checked="{{includeOther}}" color="#13695c" bindchange="toggleOther" /> <text>显示普通卫生间</text></label>
+      <button class="text-button" disabled="{{!center || searching}}" bindtap="refreshNearby">刷新</button>
+    </view>
+    <view wx:if="{{mapError}}" class="error-box map-error">{{mapError}}</view>
+    <view wx:elif="{{partial}}" class="muted map-note">部分结果未更新，可刷新重试。</view>
+    <view wx:if="{{searching}}" class="muted map-note">正在查找附近卫生间…</view>
+    <view wx:elif="{{center && !places.length && !mapError}}" class="muted map-note">{{includeOther ? '范围内暂无卫生间结果。' : '附近暂无无障碍标注，可扩大范围或查看普通卫生间。'}}</view>
+
+    <view wx:if="{{selected}}" class="selected-place">
+      <view class="destination">
+        <view class="place-name">{{selected.name}}</view>
+        <view class="muted place-address">{{selected.accessible ? selected.address : '普通卫生间 · 无障碍待核实'}}</view>
+        <view class="distance">{{selected.distanceLabel}} <text class="muted">直线距离</text></view>
+      </view>
+      <button class="primary-button direction-button" bindtap="openDirections">导航</button>
+    </view>
+    <view class="muted map-note">地点来自高德。设施、开放情况和步行路线请现场核实。</view>
+    <view class="muted map-note">定位和选点仅用于本次附近地点搜索。</view>
+  </view>
+
+  <view class="outing-actions">
+    <button class="text-button action" bindtap="toggleOuting" aria-expanded="{{showOuting}}">外出事件</button>
+    <button class="text-button action" bindtap="quickDrink">记饮水</button>
+    <button wx:if="{{embedded}}" class="text-button action" bindtouchstart="startVoice" bindtouchend="stopVoice" bindtouchcancel="cancelVoice" aria-label="按住说话，松开发送">{{busy ? '正在询问' : voice === 'recording' ? '松开发送' : voice === 'transcribing' ? '正在识别' : '按住说话'}}</button>
+    <button wx:else class="text-button action" bindtap="askAssistant">问小澜</button>
+  </view>
+
+  <view wx:if="{{showOuting}}" class="panel outing-panel">
+    <view class="outing-heading">
+      <view class="heading">外出事件</view>
+      <button class="text-button" bindtap="toggleOuting" disabled="{{outingSaving}}">{{outingResult ? '知道了' : '收起'}}</button>
+    </view>
+    <view wx:if="{{outingResult}}" class="outing-result">
+      <view>{{outingResult.message}}</view>
+      <view wx:for="{{outingResult.conflicts}}" wx:key="id" class="muted">{{item.text}}</view>
+    </view>
+    <block wx:else>
+      <view class="field">
+        <label class="label" for="outing-title">外出事项</label>
+        <input id="outing-title" class="input" value="{{outingTitle}}" data-field="outingTitle" bindinput="setOutingField" maxlength="100" placeholder="例如：外出办事" disabled="{{outingSaving}}" />
+      </view>
+      <view class="field">
+        <view class="label">开始时间</view>
+        <view class="time-fields">
+          <picker class="date-picker" mode="date" value="{{startDate}}" start="{{minDate}}" end="{{maxDate}}" data-field="startDate" bindchange="setOutingField" disabled="{{outingSaving}}"><view class="input">{{startDate}}</view></picker>
+          <picker class="time-picker" mode="time" value="{{startTime}}" data-field="startTime" bindchange="setOutingField" disabled="{{outingSaving}}"><view class="input">{{startTime}}</view></picker>
+        </view>
+      </view>
+      <view class="field">
+        <view class="label">结束时间</view>
+        <view class="time-fields">
+          <picker class="date-picker" mode="date" value="{{endDate}}" start="{{startDate}}" end="{{maxDate}}" data-field="endDate" bindchange="setOutingField" disabled="{{outingSaving}}"><view class="input">{{endDate}}</view></picker>
+          <picker class="time-picker" mode="time" value="{{endTime}}" data-field="endTime" bindchange="setOutingField" disabled="{{outingSaving}}"><view class="input">{{endTime}}</view></picker>
+        </view>
+      </view>
+      <view class="muted map-note">保存时会检查与已有护理任务是否重叠。</view>
+      <view wx:if="{{outingError}}" class="error-box outing-error">{{outingError}}</view>
+      <button class="primary-button outing-save" bindtap="saveOuting" disabled="{{outingSaving}}" loading="{{outingSaving}}">保存并检查</button>
+    </block>
+  </view>
+
+  <view wx:if="{{places.length}}" class="panel places-panel">
+    <view class="places-heading">
+      <view class="heading">附近 {{places.length}} 处</view>
+      <view class="muted">按直线距离</view>
+    </view>
+    <button wx:for="{{places}}" wx:key="id" class="text-button place-row {{selected.id === item.id ? 'selected-row' : ''}}" data-id="{{item.id}}" bindtap="selectPlace" aria-pressed="{{selected.id === item.id}}">
+      <text class="place-tag {{item.accessible ? 'accessible' : ''}}">{{item.accessible ? '无障碍' : '普通'}}</text>
+      <view class="place-description">
+        <view class="place-name">{{item.name}}</view>
+        <view class="place-address muted">{{item.accessible ? item.address : '无障碍待核实'}}</view>
+      </view>
+      <text class="distance">{{item.distanceLabel}}</text>
+    </button>
+  </view>
+</view>

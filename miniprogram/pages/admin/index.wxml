@@ -1,0 +1,201 @@
+<template name="scores">
+  <scroll-view class="score-scroll" scroll-x>
+    <view class="score-table">
+      <view class="score-row score-head">
+        <text>对照方法</text><text>窗口 / 日数</text><text>平均绝对误差</text><text>均方根误差</text><text>平均偏差</text>
+      </view>
+      <view wx:for="{{rows}}" wx:key="label" class="score-row">
+        <text>{{item.label}}</text><text>{{item.n}}</text><text>{{item.mae}}</text><text>{{item.rmse}}</text><text>{{item.bias}}</text>
+      </view>
+    </view>
+  </scroll-view>
+</template>
+
+<view class="page admin-page">
+  <view wx:if="{{!allowed}}" class="panel section-status">需要管理员权限。</view>
+  <block wx:else>
+    <view class="admin-intro">
+      <view class="admin-kicker">管理员</view>
+      <view class="admin-title">运营工作台</view>
+      <view class="muted">账号、知识发布与服务状态</view>
+    </view>
+    <view wx:if="{{overviewError}}" class="panel retry-panel">
+      <view class="error-box">{{overviewError}}</view>
+      <button class="text-button" bindtap="loadOverview">重试概览</button>
+    </view>
+    <view class="admin-stats">
+      <view wx:for="{{overview}}" wx:key="key" class="panel admin-stat">
+        <view class="stat-value">{{item.value}}</view>
+        <view class="stat-label">{{item.label}}</view>
+      </view>
+    </view>
+
+    <scroll-view class="admin-tab-scroll" scroll-x>
+      <view class="admin-tabs">
+        <button wx:for="{{tabs}}" wx:key="id" class="admin-tab {{tab === item.id ? 'selected' : ''}}" data-tab="{{item.id}}" bindtap="chooseTab">{{item.label}}</button>
+      </view>
+    </scroll-view>
+
+    <view wx:if="{{draft}}" class="panel admin-panel">
+      <view class="admin-line">
+        <view class="heading">{{draft.id ? '编辑知识内容' : '新建知识内容'}}</view>
+        <button class="text-button" disabled="{{editorBusy}}" bindtap="closeEditor">关闭</button>
+      </view>
+      <form bindsubmit="saveKnowledge" class="editor-form">
+        <view class="field"><text class="label">标题</text><input class="input" name="title" value="{{draft.title}}" maxlength="150" disabled="{{editorBusy}}" /></view>
+        <view class="field"><text class="label">来源与章节</text><input class="input" name="source" value="{{draft.source}}" maxlength="300" disabled="{{editorBusy}}" /></view>
+        <view class="field"><text class="label">正文</text><textarea class="input content-input" name="content" value="{{draft.content}}" maxlength="20000" disabled="{{editorBusy}}" /></view>
+        <view class="field"><text class="label">发布状态</text><picker range="{{statuses}}" range-key="label" value="{{statusIndex}}" disabled="{{editorBusy}}" bindchange="chooseStatus"><view class="input picker-field">{{statuses[statusIndex].label}} ▾</view></picker></view>
+        <view wx:if="{{editorError}}" class="error-box">{{editorError}}</view>
+        <button class="primary-button" form-type="submit" disabled="{{editorBusy}}" loading="{{editorBusy}}">保存知识内容</button>
+      </form>
+    </view>
+
+    <view class="panel admin-panel">
+      <view wx:if="{{sectionError}}" class="retry-panel">
+        <view class="error-box">{{sectionError}}</view>
+        <button class="text-button" bindtap="loadTab">重试</button>
+      </view>
+      <view wx:if="{{sectionBusy}}" class="section-status">正在读取…</view>
+      <block wx:if="{{tab === 'users'}}">
+        <view class="heading">账号管理</view>
+        <view wx:for="{{users}}" wx:key="id" class="admin-row">
+          <view class="row-copy">
+            <view class="row-title">{{item.display_name || item.username}}</view>
+            <view class="row-meta">{{item.username}} · {{item.roleLabel}}</view>
+          </view>
+          <text class="status-badge {{item.status === 'active' ? 'good' : 'warn'}}">{{item.statusLabel}}</text>
+          <button wx:if="{{item.role !== 'admin'}}" class="text-button compact" disabled="{{!!statusBusy}}" loading="{{statusBusy === item.id}}" data-id="{{item.id}}" bindtap="toggleStatus">{{item.status === 'active' ? '停用' : '启用'}}</button>
+        </view>
+        <view wx:if="{{!sectionBusy && !sectionError && !users.length}}" class="section-status">暂无账号</view>
+      </block>
+
+      <block wx:elif="{{tab === 'knowledge'}}">
+        <view class="admin-line">
+          <view class="heading">知识与使用指南</view>
+          <button class="text-button compact" disabled="{{editorBusy}}" bindtap="openEditor">新建内容</button>
+        </view>
+        <view class="admin-note">发布医疗内容前应完成专业审核，并注明可核验来源。下线后助手停止检索该内容。</view>
+        <view wx:for="{{knowledge}}" wx:key="id" class="admin-row">
+          <view class="row-copy">
+            <view class="row-title">{{item.title}}</view>
+            <view class="row-meta">{{item.source}} · v{{item.version}}</view>
+          </view>
+          <text class="status-badge {{item.status === 'published' ? 'good' : 'warn'}}">{{item.statusLabel}}</text>
+          <button class="text-button compact" disabled="{{editorBusy}}" data-id="{{item.id}}" bindtap="openEditor">编辑</button>
+        </view>
+        <view wx:if="{{!sectionBusy && !sectionError && !knowledge.length}}" class="section-status">暂无知识内容</view>
+      </block>
+
+      <block wx:elif="{{tab === 'audit'}}">
+        <view class="heading">审计日志</view>
+        <view wx:for="{{audit}}" wx:key="id" class="admin-row audit-row">
+          <view class="row-copy">
+            <view class="row-title">{{item.action}}</view>
+            <view wx:if="{{item.resource_id}}" class="row-meta">资源 {{item.resource_id}}</view>
+          </view>
+          <view class="audit-meta">
+            <view>{{item.username || '—'}}</view>
+            <view>{{item.time}}</view>
+          </view>
+        </view>
+        <view wx:if="{{!sectionBusy && !sectionError && !audit.length}}" class="section-status">暂无审计日志</view>
+      </block>
+
+      <block wx:elif="{{tab === 'config' && config}}">
+        <view class="heading">外部能力接入状态</view>
+        <view class="admin-line subheading">
+          <view class="row-title">AI 模型路由</view>
+          <button class="text-button compact" disabled="{{reloadBusy}}" loading="{{reloadBusy}}" bindtap="reloadAi">重新读取配置</button>
+        </view>
+        <view wx:if="{{providerError}}" class="error-box">{{providerError}}</view>
+        <view wx:for="{{providers}}" wx:key="key" class="admin-row">
+          <view class="row-copy"><view class="row-title">{{item.label}}</view><view class="row-meta">{{item.models}}</view></view>
+          <text class="status-badge {{item.available ? 'good' : 'warn'}}">{{item.state}}</text>
+        </view>
+        <view wx:if="{{!providers.length}}" class="section-status">AI 服务状态暂不可读取。</view>
+        <view class="admin-note">模型顺序和切换由服务器配置文件管理，密钥保存在服务器环境。</view>
+        <view wx:for="{{config.items}}" wx:key="key" class="admin-line admin-row">
+          <text>{{item.label}}</text><text class="status-badge {{item.value ? 'good' : 'warn'}}">{{item.value ? '已配置' : '未开通'}}</text>
+        </view>
+        <view class="admin-line admin-row"><text>数据存储</text><text>{{config.storage}}</text></view>
+        <view class="admin-line admin-row"><text>技术架构</text><text>{{config.architecture}}</text></view>
+        <view class="admin-note">{{config.notificationChannel}}</view>
+      </block>
+
+      <block wx:elif="{{tab === 'ridge'}}">
+        <view class="admin-kicker">算法研究 / RIDGE 120</view>
+        <view class="admin-line">
+          <view class="heading">产尿量预测监控</view>
+          <button class="text-button compact" disabled="{{sectionBusy}}" bindtap="loadTab">刷新结果</button>
+        </view>
+        <view class="row-meta">固定预测未来 120 分钟产尿量。研究结果仅在管理端展示。</view>
+        <block wx:if="{{research}}">
+          <view class="research-section">
+            <view class="row-title">应用真实记录</view>
+            <view class="row-meta">截至 {{research.asOf}} · 每分钟刷新</view>
+            <view class="live-stats">
+              <view wx:for="{{research.live}}" wx:key="key" class="live-stat">
+                <view class="stat-value">{{item.value}}</view><view class="stat-label">{{item.label}}</view>
+              </view>
+            </view>
+            <template wx:if="{{research.scores.length}}" is="scores" data="{{rows: research.scores}}" />
+            <view wx:else class="admin-note">尚无可评分的两小时窗口。核对起止容量与实际排出量后，这里会显示误差。</view>
+          </view>
+          <view class="research-section">
+            <view class="row-title">合成数据 · 两小时预测</view>
+            <view class="row-meta">{{research.synthetic.people}} 个合成人 · 8 种生成机制 · 每人依次使用 {{research.synthetic.train}} / {{research.synthetic.validation}} / {{research.synthetic.test}} 个窗口训练、验证和测试。误差单位 mL。</view>
+            <view class="mode-buttons">
+              <button wx:for="{{modeOptions}}" wx:key="id" class="admin-tab {{mode === item.id ? 'selected' : ''}}" data-mode="{{item.id}}" bindtap="chooseResearchMode">{{item.label}}</button>
+            </view>
+            <block wx:if="{{run}}">
+              <template is="scores" data="{{rows: run.rows}}" />
+              <view class="trace-heading">
+                <view>同一合成人的测试窗口</view>
+                <text class="actual-key">● 实际值</text> <text class="prediction-key">● 预测值</text>
+              </view>
+              <scroll-view class="trace-scroll" scroll-x>
+                <view class="trace">
+                  <view wx:for="{{run.trace}}" wx:key="index" class="trace-column" aria-label="{{'第 ' + item.number + ' 个窗口，实际 ' + item.actual + '，预测 ' + item.prediction + ' 毫升'}}">
+                    <view class="trace-pair">
+                      <view class="trace-actual" style="height: {{item.actualHeight}}%;"></view>
+                      <view class="trace-prediction" style="height: {{item.predictionHeight}}%;"></view>
+                    </view>
+                    <view>{{item.number}}</view>
+                  </view>
+                </view>
+              </scroll-view>
+            </block>
+          </view>
+          <view class="research-section">
+            <view class="row-title">公开真实数据 · 日总尿量</view>
+            <view class="row-meta">Hahn 健康志愿者 · {{research.daily.people}} 人 / {{research.daily.days}} 人日。按人留出，用全天摄入解释全天排出，误差单位 mL/日。</view>
+            <template is="scores" data="{{rows: research.daily.scores}}" />
+            <view class="row-meta">原表 {{research.daily.rawRows}} 行，符合指定采集日且有日尿量 {{research.daily.candidateDays}} 行，其中 {{research.daily.missingDiet}} 行缺饮食数据。</view>
+            <button class="text-button compact" bindtap="copyResearchSource">复制原始资料链接</button>
+          </view>
+        </block>
+        <view class="research-section">
+          <view class="row-title">测试一组输入</view>
+          <view class="row-meta">固定上午 10 时，半小时前曾饮水 200 mL。调整输入，查看两小时产尿量的研究预测。</view>
+          <view class="example-form">
+            <view class="field"><text class="label">上一时段产尿量（mL）</text><input class="input" type="digit" value="{{exampleVolume}}" disabled="{{exampleBusy}}" bindinput="updateExampleVolume" /></view>
+            <view class="field"><text class="label">信息模式</text><picker range="{{modeOptions}}" range-key="label" value="{{exampleModeIndex}}" disabled="{{exampleBusy}}" bindchange="chooseExampleMode"><view class="input picker-field">{{modeOptions[exampleModeIndex].label}} ▾</view></picker></view>
+            <view wx:if="{{exampleModeIndex === 1}}" class="field"><text class="label">第 1 小时计划饮水（mL）</text><input class="input" type="digit" value="{{examplePlan}}" disabled="{{exampleBusy}}" bindinput="updateExamplePlan" /></view>
+            <button class="primary-button" disabled="{{exampleBusy}}" loading="{{exampleBusy}}" bindtap="runExample">运行测试</button>
+          </view>
+          <view wx:if="{{exampleError}}" class="error-box example-error">{{exampleError}}</view>
+          <view wx:if="{{example}}" class="example-output">
+            <view class="row-title">预计产尿量 {{example.predicted}} mL</view>
+            <view class="row-meta">原始预测 {{example.raw}} · 截距 {{example.intercept}} · α {{example.alpha}}</view>
+            <button class="text-button compact" bindtap="toggleContributions">{{showContributions ? '收起特征贡献' : '查看 12 项特征贡献'}}</button>
+            <block wx:if="{{showContributions}}">
+              <view wx:for="{{example.contributions}}" wx:key="key" class="admin-line contribution"><text>{{item.label}}</text><text>{{item.value}} mL</text></view>
+              <view class="row-meta">特征贡献用于解释模型计算。因果作用需单独验证。</view>
+            </block>
+          </view>
+        </view>
+      </block>
+    </view>
+  </block>
+</view>
